@@ -1,0 +1,20 @@
+# Ignora node_modules e outros arquivos de dependências
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Ignora arquivos de configuração específicos do sistema
+.DS_Store
+Thumbs.db
+
+# Ignora arquivos de testes e desenvolvimento
+.git
+.gitignore
+.vscode
+.idea
+.env
+coverage
+
+# Ignora arquivos de build (se estiver usando ferramentas como TypeScript)
+dist
+build

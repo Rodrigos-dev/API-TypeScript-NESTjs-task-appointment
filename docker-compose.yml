@@ -1,0 +1,23 @@
+services:
+  # Redis service
+  redis:
+    image: redis
+    restart: always
+    ports:
+      - "6379:6379" # Mapeamento da porta do host para a porta do contêiner
+
+  # aplicacao service
+  nestjs:
+    build:
+      context: .
+      dockerfile: Dockerfile # Caminho para o Dockerfile do NestJS
+    restart: always
+    ports:
+      - "3000:3000" # Mapeamento da porta do host para a porta do contêiner    
+
+    depends_on:      
+      - redis
+
+    env_file:
+      - .env
+    
