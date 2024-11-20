@@ -61,18 +61,13 @@ export class UserService {
         order: {
           createdAt: orderBy, // Ordena pela data de criação (exemplo, ajuste conforme sua tabela)
         },
-      });
-
-      const resultWithOutPassword = result.map(user => {
-        const { password, ...rest } = user;
-        return rest;
-      });
+      });      
 
       return {
         total: total,
         currentPage: page,
         totalPages: Math.ceil(total / take),
-        users: resultWithOutPassword || [],
+        users: result || [],
       }
 
     } catch (err) {
@@ -87,11 +82,9 @@ export class UserService {
 
       if (!user) {
         throw new HttpException(`Usuário não encontrado!`, HttpStatus.NOT_FOUND);
-      }
-
-      const { password, ...rest } = user;
+      }      
       
-      return rest;
+      return user;
 
     } catch (err) {
       loggers.loggerMessage('error', err)
@@ -150,18 +143,13 @@ export class UserService {
         .skip((page - 1) * take)
         .take(take)
 
-      const [users, total]: any = await queryFind.getManyAndCount()
-
-      const resultWithOutPassword = users.map(user => {
-        const { password, ...rest } = user;
-        return rest;
-      });
+      const [users, total]: any = await queryFind.getManyAndCount()      
 
       return {
         total: total,
         currentPage: page,
         totalPages: Math.ceil(total / take),
-        users: resultWithOutPassword || [],
+        users: users || [],
       }
 
     } catch (err) {
