@@ -52,6 +52,9 @@ api feita com nest.JS typeScripty para iniciar qualquer projeto a partir dela
 * 003 - add dockerfile e docker-compose conmunicando com banco local do pc
 * 003 - add no docker-compose o REDIS para subir antes da aplicacao e podermos usar o redis no futuro
 
+* 004 - ADD FILAS COM REDIS NO DOCKER E BULL PARA MANIPULAR
+* 004 - EM MAPS 004 TEM FILAS RABITMQ, PUB SUB, BULL E REDIS, REDIS PURO ETC 
+
 ## Project setup
 
 ```bash

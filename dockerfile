@@ -2,11 +2,11 @@
 # Use uma imagem base do Node.js
 FROM node:latest
 
-ENV DB_HOST=host.docker.internal
-ENV DB_PORT=3306
-ENV DB_USER=root
-ENV DB_PASSWORD=123456
-ENV DB_NAME=api_staging_banco_typeorm_inicial
+# ENV DB_HOST=host.docker.internal
+# ENV DB_PORT=3306
+# ENV DB_USER=root
+# ENV DB_PASSWORD=123456
+# ENV DB_NAME=api_staging_banco_typeorm_inicial
 
 # Crie e defina o diretório de trabalho dentro do contêiner
 WORKDIR /app
