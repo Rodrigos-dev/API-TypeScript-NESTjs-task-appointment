@@ -9,6 +9,7 @@ import { Reflector } from '@nestjs/core';
 import { RolesGuard } from './commom/guards/roles.guard';
 import { QueueBullModule } from './commom/bull-queue/bull.module';
 import { UserTestBullQueueModule } from './user-test-bull-queue/user-test-bull-queue.module';
+import { EmailSendModule } from './email-send/email-send.module';
 
 
 @Module({
@@ -33,7 +34,8 @@ import { UserTestBullQueueModule } from './user-test-bull-queue/user-test-bull-q
   UserModule,
   AuthModule,
   QueueBullModule,
-  UserTestBullQueueModule
+  UserTestBullQueueModule,
+  EmailSendModule
   ],
   controllers: [AppController],
   providers: [AppService,
