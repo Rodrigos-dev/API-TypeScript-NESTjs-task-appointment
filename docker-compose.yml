@@ -4,7 +4,17 @@ services:
     image: redis
     restart: always
     ports:
+      - 15672:15672
       - "6379:6379" # Mapeamento da porta do host para a porta do contêiner
+
+  rabbitmq:
+    image: rabbitmq:3.12-management 		# NOME DA IMAGEM
+    ports:					#PORTAS QUE VAO SER LANCADA 
+      - 15672:15672
+      - 5672:5672
+    environment:				#ENVIROMENT PARA PODER ACESSAR NA URL COM ESSE ADMIN E PASSWORD 
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
 
   # aplicacao service
   nestjs:
@@ -17,6 +27,7 @@ services:
 
     depends_on:      
       - redis
+      - rabbitmq
 
     env_file:
       - .env

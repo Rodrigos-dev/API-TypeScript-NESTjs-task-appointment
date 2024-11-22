@@ -10,13 +10,16 @@ import loggers from 'src/commom/utils/loggers';
 import { ForgetPasswordDto } from './dto/forget-password.dto';
 import { EmailSendService } from 'src/email-send/email-send.service';
 import { UpdatePasswordDto } from './dto/update-password.dto';
+import { RabbitService } from 'src/rabbit/rabbit.service';
+import { CreateRabbitDto, TypeQueuRabbit } from 'src/rabbit/dto/create-rabbit.dto';
 
 @Injectable()
 export class UserService {
 
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
-    private emailSendService: EmailSendService
+    private emailSendService: EmailSendService,
+    private rabbitService: RabbitService
   ) { }
 
   async create(createUserDto: CreateUserDto) {
@@ -210,14 +213,21 @@ export class UserService {
 
       let emailSended: boolean = false
 
-      await this.emailSendService.sendEmail(
-        {
-          subject: 'Código para atualizar Senha',
-          emailTo: userExists.email,
-          text: `Seu Codigo para atualizar a Senha é  => ${code}.\n 
-            Use seu código para realizar a atualização da sua nova senha`
-        }
-      ).then(async (r) => {
+      const dataEmail = {
+        subject: 'Código para atualizar Senha',
+        emailTo: userExists.email,
+        text: `Seu Codigo para atualizar a Senha é  => ${code}.\n 
+          Use seu código para realizar a atualização da sua nova senha`
+      }
+
+      const dataRabbit: CreateRabbitDto = {
+        message: JSON.stringify(dataEmail),
+        typeQueuRabbit: TypeQueuRabbit.SEND_EMAIL_FORGET_PASSWORD
+      }
+            
+      const queueAdded = await this.rabbitService.create(dataRabbit)
+
+      if (queueAdded) {
         emailSended = true
 
         let userUpdate = {
@@ -228,18 +238,21 @@ export class UserService {
           ...userUpdate,
           id: Number(userExists.id),
         });
-      })
 
-      const firstLetterEmail = `${userExists.email[0]}${userExists.email[1]}`;
+        const firstLetterEmail = `${userExists.email[0]}${userExists.email[1]}`;
 
-      const domain = userExists.email.substring(userExists.email.indexOf('@'));
+        const domain = userExists.email.substring(userExists.email.indexOf('@'));
 
-      const emailToSendMessageEmail = `${firstLetterEmail}*********${domain}`;
+        const emailToSendMessageEmail = `${firstLetterEmail}*********${domain}`;
 
-      if (!emailSended) {
-        return { message: 'Humm...Aconteceu algum problema tente mais tarde ou entre em contato com o suporte,' }
+        if (!emailSended) {
+          return { message: 'Humm...Aconteceu algum problema tente mais tarde ou entre em contato com o suporte,' }
+        } else {
+          return { message: `Em alguns instantes sera enviado um Email para ${emailToSendMessageEmail} com o código para realizar a atualização de sua nova senha, verifique sua caixa de span ou lixo! Caso não encontre tente novamente ou entre em contato com o suporte.` }
+        }
       } else {
-        return { message: `Em alguns instantes sera enviado um Email para ${emailToSendMessageEmail} com o código para realizar a atualização de sua nova senha, verifique sua caixa de span ou lixo! Caso não encontre tente novamente ou entre em contato com o suporte.` }
+        loggers.loggerMessage('error', `algum erro ao adicionar na fila de processamento!`)
+        throw new HttpException(`algum erro ao adicionar na fila de processamento`, HttpStatus.BAD_REQUEST);
       }
 
     } catch (err) {
@@ -310,7 +323,7 @@ export class UserService {
       if (userExists.email.toLowerCase() !== data.email.toLowerCase()) {
         loggers.loggerMessage('error', `Email enviado no body não é igual o cadastrado`)
         throw new HttpException(`Email enviado no body não é igual o cadastrado`, HttpStatus.BAD_REQUEST);
-      }      
+      }
 
       if (passwordUpdate) {
         return await this.userRepository.save({ ...passwordUpdate, id: Number(userExists.id), })

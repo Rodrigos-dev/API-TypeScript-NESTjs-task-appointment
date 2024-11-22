@@ -10,6 +10,7 @@ import { RolesGuard } from './commom/guards/roles.guard';
 import { QueueBullModule } from './commom/bull-queue/bull.module';
 import { UserTestBullQueueModule } from './user-test-bull-queue/user-test-bull-queue.module';
 import { EmailSendModule } from './email-send/email-send.module';
+import { RabbitModule } from './rabbit/rabbit.module';
 
 
 @Module({
@@ -35,7 +36,8 @@ import { EmailSendModule } from './email-send/email-send.module';
   AuthModule,
   QueueBullModule,
   UserTestBullQueueModule,
-  EmailSendModule
+  EmailSendModule,
+  RabbitModule
   ],
   controllers: [AppController],
   providers: [AppService,
