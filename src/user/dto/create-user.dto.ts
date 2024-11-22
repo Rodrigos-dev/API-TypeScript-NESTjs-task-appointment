@@ -20,6 +20,6 @@ export class CreateUserDto {
     @Matches(/^(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>/\\]).*$/, {
         message: 'A senha deve conter pelo menos uma letra maiúscula, um número, um caractere especial (incluindo /) e ter no mínimo 6 caracteres.'
     })
-    confirmPassword: string;
+    confirmPassword: string;    
         
 }

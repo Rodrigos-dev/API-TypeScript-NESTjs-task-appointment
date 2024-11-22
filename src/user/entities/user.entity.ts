@@ -21,6 +21,9 @@ export class User {
 
     @Column()
     password: string;
+
+    @Column({ nullable: true})
+    codeForgetPassword: string;
     
     @Column({
         type: 'enum',

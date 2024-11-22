@@ -7,8 +7,9 @@ import { Role, User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import loggers from 'src/commom/utils/loggers';
-import { UpdateForgetPasswordDto } from './dto/update-and-forget-password.dto';
+import { ForgetPasswordDto } from './dto/forget-password.dto';
 import { EmailSendService } from 'src/email-send/email-send.service';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Injectable()
 export class UserService {
@@ -192,7 +193,7 @@ export class UserService {
     }
   }
 
-  async updateOrforgetedPassword(data: UpdateForgetPasswordDto) {
+  async forgetedPassword(data: ForgetPasswordDto) {
     try {
 
       const userExists = await this.findOneByEmail(data.email)
@@ -202,25 +203,25 @@ export class UserService {
         throw new HttpException(`User don't found`, HttpStatus.BAD_REQUEST);
       }
 
-      const newPassword = `ab@${Math.floor(Math.random() * 9000) + 1000}`
-
-      data.password = bcrypt.hashSync(newPassword, 8)
+      const timestamp = Date.now().toString().slice(-2);
+      const randomPart = Math.floor(Math.random() * 9000) + 1000;
+      let code = `${timestamp}${randomPart}`.slice(0, 4);
+      code = `${code}${userExists.id}`
 
       let emailSended: boolean = false
 
       await this.emailSendService.sendEmail(
         {
-          subject: 'Nova Senha Para Login',
+          subject: 'Código para atualizar Senha',
           emailTo: userExists.email,
-          text: `NOVA SENHA : ${newPassword}.\n 
-            Use sua nova senha, após uso se desejar troque para uma de sua escolha,\n 
-            realizando uma atualização de cadastro`
+          text: `Seu Codigo para atualizar a Senha é  => ${code}.\n 
+            Use seu código para realizar a atualização da sua nova senha`
         }
       ).then(async (r) => {
         emailSended = true
 
         let userUpdate = {
-          password: data.password,
+          codeForgetPassword: code,
         }
 
         const updatePassword = await this.userRepository.save({
@@ -229,10 +230,93 @@ export class UserService {
         });
       })
 
+      const firstLetterEmail = `${userExists.email[0]}${userExists.email[1]}`;
+
+      const domain = userExists.email.substring(userExists.email.indexOf('@'));
+
+      const emailToSendMessageEmail = `${firstLetterEmail}*********${domain}`;
+
       if (!emailSended) {
         return { message: 'Humm...Aconteceu algum problema tente mais tarde ou entre em contato com o suporte,' }
       } else {
-        return { message: 'Em alguns instantes sera enviado um Email com sua nova senha temporária, verifique sua caixa de span ou lixo! Caso não encontre tente novamente ou entre em contato com o suporte.' }
+        return { message: `Em alguns instantes sera enviado um Email para ${emailToSendMessageEmail} com o código para realizar a atualização de sua nova senha, verifique sua caixa de span ou lixo! Caso não encontre tente novamente ou entre em contato com o suporte.` }
+      }
+
+    } catch (err) {
+      loggers.loggerMessage('error', err)
+      return exceptions.exceptionsReturn(err)
+    }
+  }
+
+  async updatePassword(data: UpdatePasswordDto, codeForgetPassword?: string) {
+    try {
+
+      let userExists = null
+      let messageUserNotFound = null
+      let passwordUpdate = null
+
+      if (codeForgetPassword) {
+        if (!codeForgetPassword) {
+          loggers.loggerMessage('error', `codeForgetPassword não enviado!`)
+          throw new HttpException(`Body com dados inválidos`, HttpStatus.BAD_REQUEST);
+        }
+
+        userExists = await this.userRepository.findOne({
+          where: {
+            codeForgetPassword: (codeForgetPassword).toString(),
+            email: data.email
+          }
+        })
+
+        if (userExists) {
+          passwordUpdate = { password: bcrypt.hashSync(data.password, 8), codeForgetPassword: null }
+        } else {
+          messageUserNotFound = `Usuário não encontrado! ou não tem codigo, ou então codigo enviado errado`
+        }
+
+      } else {
+
+        if (!data.oldPassword) {
+          loggers.loggerMessage('error', 'oldPassword deve ser enviado')
+          throw new HttpException('oldPassword deve ser enviado', HttpStatus.BAD_REQUEST);
+        }
+
+        userExists = await this.userRepository.findOne({
+          where: {
+            email: data.email
+          }
+        })
+
+        if (userExists) {
+          const oldPasswordSendedIsEqualRegistered = await bcrypt.compare(data.oldPassword, userExists.password);
+
+          if (oldPasswordSendedIsEqualRegistered) {
+            passwordUpdate = { password: bcrypt.hashSync(data.password, 8), codeForgetPassword: null }
+          } else {
+            loggers.loggerMessage('error', 'oldPassword enviado não é igual ao registrado')
+            throw new HttpException('oldPassword enviado não é igual ao registrado', HttpStatus.BAD_REQUEST);
+          }
+
+        } else {
+          messageUserNotFound = `Usuário não encontrado!`
+        }
+      }
+
+      if (!userExists) {
+        loggers.loggerMessage('error', messageUserNotFound)
+        throw new HttpException(messageUserNotFound, HttpStatus.BAD_REQUEST);
+      }
+
+      if (userExists.email.toLowerCase() !== data.email.toLowerCase()) {
+        loggers.loggerMessage('error', `Email enviado no body não é igual o cadastrado`)
+        throw new HttpException(`Email enviado no body não é igual o cadastrado`, HttpStatus.BAD_REQUEST);
+      }      
+
+      if (passwordUpdate) {
+        return await this.userRepository.save({ ...passwordUpdate, id: Number(userExists.id), })
+      } else {
+        loggers.loggerMessage('error', `Erro ao gerar o passord criptografado`)
+        throw new HttpException(`Erro ao gerar o passord criptografado`, HttpStatus.BAD_REQUEST);
       }
 
     } catch (err) {
