@@ -7,6 +7,7 @@ import { Role, User } from './entities/user.entity';
 import { UserReq } from 'src/commom/decorators/user-request.decorator';
 import { AuthRole } from 'src/commom/decorators/roles.decorator';
 import { RolesGuard } from 'src/commom/guards/roles.guard';
+import { UpdateForgetPasswordDto } from './dto/update-and-forget-password.dto';
 
 @Controller('user')
 export class UserController {
@@ -15,6 +16,11 @@ export class UserController {
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
+  }
+
+  @Post('updateOrforgetedPassword')
+  updateOrforgetedPassword(@Body() data: UpdateForgetPasswordDto) {
+    return this.userService.updateOrforgetedPassword(data);
   }
 
   @UseGuards(JwtAuthGuard)

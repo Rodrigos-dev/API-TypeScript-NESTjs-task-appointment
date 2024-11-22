@@ -57,6 +57,8 @@ api feita com nest.JS typeScripty para iniciar qualquer projeto a partir dela
 
 * 005 - ADICIONEI ENVIAR EMAIL USANDO NODEMALER PELO GMAIL  HOTMAIL ETC
 
+* 006 - ADICIONEI A FORMA DE FAZER O ESQUECEU A SENHA...ENVIANDO CODIGO NO EMAIL POREM SEM FILA AINDA
+
 ## Project setup
 
 ```bash

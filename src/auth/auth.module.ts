@@ -9,6 +9,7 @@ import { UserService } from 'src/user/user.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt-auth.strategy';
 import { RefreshJwtStrategy } from './refresh-jwt.strategy';
+import { EmailSendService } from 'src/email-send/email-send.service';
 
 
 @Module({
@@ -18,7 +19,7 @@ import { RefreshJwtStrategy } from './refresh-jwt.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, UserService, JwtStrategy, RefreshJwtStrategy],
+  providers: [AuthService, LocalStrategy, UserService, JwtStrategy, RefreshJwtStrategy, EmailSendService],
   exports:  [AuthService]
 })
 export class AuthModule {}

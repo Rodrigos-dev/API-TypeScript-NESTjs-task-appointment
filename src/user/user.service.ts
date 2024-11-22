@@ -7,12 +7,15 @@ import { Role, User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import loggers from 'src/commom/utils/loggers';
+import { UpdateForgetPasswordDto } from './dto/update-and-forget-password.dto';
+import { EmailSendService } from 'src/email-send/email-send.service';
 
 @Injectable()
 export class UserService {
 
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
+    private emailSendService: EmailSendService
   ) { }
 
   async create(createUserDto: CreateUserDto) {
@@ -35,7 +38,7 @@ export class UserService {
 
       return result
 
-    } catch (err) {      
+    } catch (err) {
       return exceptions.exceptionsReturn(err)
     }
   }
@@ -61,7 +64,7 @@ export class UserService {
         order: {
           createdAt: orderBy, // Ordena pela data de criação (exemplo, ajuste conforme sua tabela)
         },
-      });      
+      });
 
       return {
         total: total,
@@ -82,8 +85,8 @@ export class UserService {
 
       if (!user) {
         throw new HttpException(`Usuário não encontrado!`, HttpStatus.NOT_FOUND);
-      }      
-      
+      }
+
       return user;
 
     } catch (err) {
@@ -103,8 +106,8 @@ export class UserService {
       }
 
       return user
-      
-    } catch (err) {      
+
+    } catch (err) {
       return exceptions.exceptionsReturn(err)
     }
   }
@@ -143,7 +146,7 @@ export class UserService {
         .skip((page - 1) * take)
         .take(take)
 
-      const [users, total]: any = await queryFind.getManyAndCount()      
+      const [users, total]: any = await queryFind.getManyAndCount()
 
       return {
         total: total,
@@ -177,11 +180,60 @@ export class UserService {
         }
       }
 
-      if(updateUserDto.role && userReq.role !== Role.ADMIN){
+      if (updateUserDto.role && userReq.role !== Role.ADMIN) {
         throw new HttpException(`Você não tem permissão para alterar a Permissão, refaça o login e tente novamente`, HttpStatus.FORBIDDEN)
       }
 
       return await this.userRepository.save({ ...updateUserDto, id: Number(userId) })
+
+    } catch (err) {
+      loggers.loggerMessage('error', err)
+      return exceptions.exceptionsReturn(err)
+    }
+  }
+
+  async updateOrforgetedPassword(data: UpdateForgetPasswordDto) {
+    try {
+
+      const userExists = await this.findOneByEmail(data.email)
+
+      if (!userExists) {
+        loggers.loggerMessage('error', `user email:${data.email} don't found!`)
+        throw new HttpException(`User don't found`, HttpStatus.BAD_REQUEST);
+      }
+
+      const newPassword = `ab@${Math.floor(Math.random() * 9000) + 1000}`
+
+      data.password = bcrypt.hashSync(newPassword, 8)
+
+      let emailSended: boolean = false
+
+      await this.emailSendService.sendEmail(
+        {
+          subject: 'Nova Senha Para Login',
+          emailTo: userExists.email,
+          text: `NOVA SENHA : ${newPassword}.\n 
+            Use sua nova senha, após uso se desejar troque para uma de sua escolha,\n 
+            realizando uma atualização de cadastro`
+        }
+      ).then(async (r) => {
+        emailSended = true
+
+        let userUpdate = {
+          password: data.password,
+        }
+
+        const updatePassword = await this.userRepository.save({
+          ...userUpdate,
+          id: Number(userExists.id),
+        });
+      })
+
+      if (!emailSended) {
+        return { message: 'Humm...Aconteceu algum problema tente mais tarde ou entre em contato com o suporte,' }
+      } else {
+        return { message: 'Em alguns instantes sera enviado um Email com sua nova senha temporária, verifique sua caixa de span ou lixo! Caso não encontre tente novamente ou entre em contato com o suporte.' }
+      }
 
     } catch (err) {
       loggers.loggerMessage('error', err)
