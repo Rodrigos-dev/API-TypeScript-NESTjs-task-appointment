@@ -11,6 +11,8 @@ import { QueueBullModule } from './commom/bull-queue/bull.module';
 import { UserTestBullQueueModule } from './user-test-bull-queue/user-test-bull-queue.module';
 import { EmailSendModule } from './email-send/email-send.module';
 import { RabbitModule } from './rabbit/rabbit.module';
+import { PushNotificationModule } from './push-notification/push-notification.module';
+import { DeviceRegisterModule } from './device-register/device-register.module';
 
 
 @Module({
@@ -37,7 +39,9 @@ import { RabbitModule } from './rabbit/rabbit.module';
   QueueBullModule,
   UserTestBullQueueModule,
   EmailSendModule,
-  RabbitModule
+  RabbitModule,
+  PushNotificationModule,
+  DeviceRegisterModule
   ],
   controllers: [AppController],
   providers: [AppService,
