@@ -38,6 +38,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "e": "^0.2.33",
+    "firebase-admin": "^13.0.1",
     "i": "^0.3.7",
     "mysql2": "^3.11.3",
     "nodemailer": "^6.9.16",
