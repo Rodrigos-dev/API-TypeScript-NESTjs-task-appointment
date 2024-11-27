@@ -1,14 +1,26 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { CreatePushNotificationDto } from './dto/create-push-notification.dto';
 import index from '../commom/firebase';
+import { InjectRepository } from '@nestjs/typeorm';
+import { DeviceRegister } from 'src/device-register/entities/device-register.entity';
+import { Repository } from 'typeorm';
+import { SendPushNotificationFirebaseDto } from './dto/send-push-notification-firebase.dto';
+import { PushNotification } from './entities/push-notification.entity';
+import loggers from 'src/commom/utils/loggers';
+import exceptions from 'src/commom/utils/exceptions';
 
 @Injectable()
 export class PushNotificationService {
-  async sendPushNotification(data: CreatePushNotificationDto) {
+
+  constructor(
+    @InjectRepository(PushNotification) private pushNotificationRepository: Repository<PushNotification>,
+    @InjectRepository(DeviceRegister) private deviceRegisterRepository: Repository<DeviceRegister>
+  ) { }
+
+  async sendPushNotification(data: SendPushNotificationFirebaseDto) {
     try {
 
       let page = 1;
-      let take = 500;
+      let take = 499;
 
       if (!data.notification.title || data.notification.title === '') {
         throw new HttpException(`message must have a title`, HttpStatus.BAD_REQUEST)
@@ -29,89 +41,109 @@ export class PushNotificationService {
 
       if (!data.data) {
         delete data.data
+      }    
+      
+      if(data.tokens.length > 499){
+        loggers.loggerMessage('error', 'only 500 tokens each time')
+        throw new HttpException(`only 500 tokens each time`, HttpStatus.BAD_REQUEST)
       }
 
-      // if (data.tokens.length === 0) {
+      if (data.tokens.length === 0) {
 
-      //   const qtdTokenssRegistereds = await this.firebaseDeviceRegisterEntityRepository.count()
+        let continueSendPush = true        
+        let userIdsReceivePushDatabase = []
 
-      //   if (qtdTokenssRegistereds === 0) {
-      //     throw new HttpException(`no token registereds still`, HttpStatus.NOT_FOUND)
-      //   }
+        while (continueSendPush === true){
 
-      //   let qtdQuerysToRealized = Math.ceil(qtdTokenssRegistereds / 500);
+          let userIdsReceivePush = []
 
-      //   for (let x = 0; x < qtdQuerysToRealized; x++) {
-      //     const queryToken = this.firebaseDeviceRegisterEntityRepository.createQueryBuilder('registerFirebase')
-      //       .select('registerFirebase.token', 'token')
+          const queryToken = this.deviceRegisterRepository.createQueryBuilder('deviceRegister')
+          .select(['token', 'userId'])
 
-      //       .skip(take * (page - 1))
-      //       .take(take)
-      //       .orderBy('comment.id', 'DESC');
+            .skip(take * (page - 1))
+            .take(take)
+            .orderBy('deviceRegister.id', 'DESC');
 
-      //     const registeredsTokens = await queryToken.getRawMany();
+          const registeredsTokens = await queryToken.getRawMany();
 
-      //     for await (const register of registeredsTokens) {
-      //       data.tokens.push(register.token)
-      //     }
+          if(registeredsTokens.length > 0){
+            for await (const register of registeredsTokens) {
+              data.tokens.push(register.token)
+              userIdsReceivePush.push(register.userId)
+              userIdsReceivePushDatabase.push(register.userId)
+            }
 
-      //     index.postPushNotification(data)
+            const notificationSend = index.postPushNotification(data)
+  
+            page++
 
-      //     page++
-      //   }
+          }else{
+            continueSendPush = false
+          }
+        } 
+        
+        const pushSaveIndatabase = []
 
-      //   let pushInDataBase: CreatePushNotificationDataBaseDto = {
-      //     message: data.notification.body ? data.notification.body : null,
-      //     title: data.notification.title ? data.notification.title : null,
-      //     imageUrl: data.notification.imageUrl ? data.notification.imageUrl : null,
-      //     allUsers: true,
-      //     icon: data.icon ? data.icon : null,
-      //     userId: null
-      //   }
+        for await (const userId of userIdsReceivePushDatabase) { 
 
-      //   await this.pushNotificationDataBaseService.createPushInDataBase(pushInDataBase)
+          const push = new PushNotification()
+            push.message = data.notification.body ? data.notification.body : null,
+            push.title = data.notification.title ? data.notification.title : null,
+            push.imageUrl = data.notification.imageUrl ? data.notification.imageUrl : null,
+            push.allUsers = true,
+            push.icon = data.icon ? data.icon : null,
+            push.userId = userId         
 
-      // } else {
+          pushSaveIndatabase.push(push)
 
-      //   const notificationSend = index.postPushNotification(data)
+        }             
 
-      //   const queryUsers = await this.firebaseDeviceRegisterEntityRepository.createQueryBuilder('tokensRegistereds')
-      //     .where('tokensRegistereds.token IN (:...tokens) ', { tokens: data.tokens })
+        await this.pushNotificationRepository.save(pushSaveIndatabase)
 
-      //   const tokensRegistereds: any = await queryUsers.getMany()
+        return true
 
-      //   if(tokensRegistereds.length > 0){
-      //     console.log('aaaa')
-      //   }
+      } else {        
 
-      //   for await (const tokenRegistered of tokensRegistereds) {
+        const queryUsers = this.deviceRegisterRepository.createQueryBuilder('tokensRegistereds')
+          .where('tokensRegistereds.token IN (:...tokens) ', { tokens: data.tokens })
 
-      //     let pushInDataBase: CreatePushNotificationDataBaseDto = {
-      //       message: data.notification.body ? data.notification.body : null,
-      //       title: data.notification.title ? data.notification.title : null,
-      //       imageUrl: data.notification.imageUrl ? data.notification.imageUrl : null,
-      //       allUsers: false,
-      //       icon: data.icon ? data.icon : null,
-      //       userId: tokenRegistered.userId
-      //     }
+        const tokensRegistereds: any = await queryUsers.getMany()        
 
-      //     await this.pushNotificationDataBaseService.createPushInDataBase(pushInDataBase)
+        const notificationSend = index.postPushNotification(data)
 
-      //   }
-      // }
+        const pushSaveIndatabase = []
+
+        for await (const tokenRegistered of tokensRegistereds) {
+
+          const push = new PushNotification()
+
+          push.message = data.notification.body ? data.notification.body : null,
+          push.title = data.notification.title ? data.notification.title : null,
+          push.imageUrl = data.notification.imageUrl ? data.notification.imageUrl : null,
+          push.allUsers = false,
+          push.icon = data.icon ? data.icon : null,
+          push.userId = tokenRegistered.userId       
+          
+          pushSaveIndatabase.push(push)
+        }
+
+        return await this.pushNotificationRepository.save(pushSaveIndatabase)
+      }
 
     } catch (err) {
-      if (err.driverError) {
-        throw new HttpException(err.driverError, HttpStatus.INTERNAL_SERVER_ERROR)
-      } else {
-        if (err.status >= 300 && err.status < 500) {
-          throw err
-        } else if (err.message) {
-          throw new HttpException(err.message, HttpStatus.INTERNAL_SERVER_ERROR)
-        } else {
-          throw new HttpException(err, HttpStatus.INTERNAL_SERVER_ERROR)
-        }
-      }
+      loggers.loggerMessage('error', err)
+      return exceptions.exceptionsReturn(err)
+    }
+  }
+
+  async delete(pushIds: [number]){
+    try{
+
+      return await this.pushNotificationRepository.delete(pushIds)
+      
+    }catch(err){
+      loggers.loggerMessage('error', err)
+      return exceptions.exceptionsReturn(err)
     }
   }
 }

@@ -1,10 +1,12 @@
-import { Column, CreateDateColumn, DeleteDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, Index, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 export enum SystemType {
     IOS = 'ios',
     ANDROID = 'android',
 }
 
+@Entity()
+@Index(['userId'])
 export class DeviceRegister {
     @PrimaryGeneratedColumn()
     id: number

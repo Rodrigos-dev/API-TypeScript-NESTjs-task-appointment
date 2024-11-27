@@ -101,13 +101,12 @@ export class DeviceRegisterService {
     }
   }
 
-  async remove(userId: number, registerId: number) {
+  async remove(userIdOwnerRegisterToken: number) {
     try {
 
       const tokenExists = await this.deviceRegisterRepository.findOne({
-        where: {          
-          id: Number(registerId),
-          userId: Number(userId)
+        where: {         
+          userId: Number(userIdOwnerRegisterToken)
         }
       })        
 
@@ -116,7 +115,7 @@ export class DeviceRegisterService {
         throw new HttpException(`register not found `, HttpStatus.BAD_REQUEST)
       }     
 
-      return await this.deviceRegisterRepository.delete(registerId)
+      return await this.deviceRegisterRepository.delete(tokenExists.id)
 
     } catch (err) {
       loggers.loggerMessage('error', err)

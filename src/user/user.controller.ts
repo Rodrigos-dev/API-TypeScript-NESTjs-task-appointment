@@ -88,6 +88,7 @@ export class UserController {
     return this.userService.findAllByQuery(query);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':userId')
   remove(@Param('userId') userId: string) {
     return this.userService.remove(+userId);

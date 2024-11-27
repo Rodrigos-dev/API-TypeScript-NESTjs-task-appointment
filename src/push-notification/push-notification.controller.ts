@@ -1,34 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Post, Body, Delete, UseGuards } from '@nestjs/common';
 import { PushNotificationService } from './push-notification.service';
-import { CreatePushNotificationDto } from './dto/create-push-notification.dto';
-import { UpdatePushNotificationDto } from './dto/update-push-notification.dto';
+import { SendPushNotificationFirebaseDto } from './dto/send-push-notification-firebase.dto';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('push-notification')
 export class PushNotificationController {
   constructor(private readonly pushNotificationService: PushNotificationService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createPushNotificationDto: CreatePushNotificationDto) {
-    return this.pushNotificationService.create(createPushNotificationDto);
+  sendPushNotification(@Body() createPushNotificationDataBaseDto: SendPushNotificationFirebaseDto) {
+    return this.pushNotificationService.sendPushNotification(createPushNotificationDataBaseDto);
   }
-
-  @Get()
-  findAll() {
-    return this.pushNotificationService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.pushNotificationService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePushNotificationDto: UpdatePushNotificationDto) {
-    return this.pushNotificationService.update(+id, updatePushNotificationDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.pushNotificationService.remove(+id);
+  
+  @UseGuards(JwtAuthGuard)
+  @Delete()
+  async delete(@Body() pushIds: [number]){
+    return await this.pushNotificationService.delete(pushIds);
   }
 }

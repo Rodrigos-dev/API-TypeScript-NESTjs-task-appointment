@@ -1,34 +1,35 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
 import { DeviceRegisterService } from './device-register.service';
 import { CreateDeviceRegisterDto } from './dto/create-device-register.dto';
 import { UpdateDeviceRegisterDto } from './dto/update-device-register.dto';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('device-register')
 export class DeviceRegisterController {
   constructor(private readonly deviceRegisterService: DeviceRegisterService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() createDeviceRegisterDto: CreateDeviceRegisterDto) {
-    return this.deviceRegisterService.create(createDeviceRegisterDto);
+    return this.deviceRegisterService.createOrUpdateRegisterToken(createDeviceRegisterDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
-  findAll() {
-    return this.deviceRegisterService.findAll();
+  findAllTokenRegisters(@Query() query: { page: number; take: number; orderBy: 'ASC' | 'DESC' }) {
+    return this.deviceRegisterService.findAllTokenRegisters(query);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.deviceRegisterService.findOne(+id);
+  @UseGuards(JwtAuthGuard)
+  @Get(':userIdOwnerRegisterToken')
+  getOneByUserOwnerRegisterId(@Param('userIdOwnerRegisterToken') userIdOwnerRegisterToken: number) {
+    return this.deviceRegisterService.getOneByUserOwnerRegisterId(userIdOwnerRegisterToken);
+  }  
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':userIdOwnerRegisterToken/')
+  remove(@Param('userIdOwnerRegisterToken') userIdOwnerRegisterToken: number) {
+    return this.deviceRegisterService.remove(userIdOwnerRegisterToken);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDeviceRegisterDto: UpdateDeviceRegisterDto) {
-    return this.deviceRegisterService.update(+id, updateDeviceRegisterDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.deviceRegisterService.remove(+id);
-  }
 }

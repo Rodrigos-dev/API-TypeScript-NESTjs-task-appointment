@@ -1,8 +1,9 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { EmailSendService } from './email-send.service';
 import { EmailSendController } from './email-send.controller';
 import { MailerModule } from '@nestjs-modules/mailer';			
 
+@Global()
 @Module({
   imports: [
     MailerModule.forRoot({								
