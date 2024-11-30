@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { json, urlencoded } from 'express';
 import * as admin from 'firebase-admin';
+import  dropbox from 'src/commom/dropbox';
 
 let serviceAccount = null
 
@@ -33,6 +34,7 @@ async function bootstrap() {
   });
 
   await app.listen(process.env.PORT || 3000);
+  //await dropbox.startTokenDropBox()
 }
 
 bootstrap();

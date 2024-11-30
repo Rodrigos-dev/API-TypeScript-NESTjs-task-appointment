@@ -32,6 +32,15 @@ export class User {
     })
     role: Role;
 
+    @Column({ nullable: true})
+    urlAvatar: string;
+
+    @Column({ nullable: true})
+    avatarName: string;
+
+    @Column({ nullable: true})
+    mimeType: string;
+
     @CreateDateColumn({ type: 'timestamp' })
     createdAt: Date;
 

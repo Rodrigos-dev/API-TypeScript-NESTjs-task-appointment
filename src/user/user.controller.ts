@@ -93,4 +93,11 @@ export class UserController {
   remove(@Param('userId') userId: string) {
     return this.userService.remove(+userId);
   }
+
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Delete('removeAvatarImage/:userId')  
+  removeAvatarImage(@Param('userId') userId: string, @UserReq() userReq: User) {
+    return this.userService.removeAvatarImage(+userId, userReq);
+  }
 }

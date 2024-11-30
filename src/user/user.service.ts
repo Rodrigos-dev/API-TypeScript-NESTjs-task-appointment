@@ -7,6 +7,7 @@ import { Role, User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import loggers from 'src/commom/utils/loggers';
+import dropbox from 'src/commom/dropbox';
 import { ForgetPasswordDto } from './dto/forget-password.dto';
 import { EmailSendService } from 'src/email-send/email-send.service';
 import { UpdatePasswordDto } from './dto/update-password.dto';
@@ -22,6 +23,14 @@ export class UserService {
     private rabbitService: RabbitService
   ) { }
 
+  async mountUrlUserFileDropbox(userId: number, typePath: 'avatar' | 'other', fileName: string) {
+    if (userId && typePath && fileName) {
+      return `users/${userId}/${typePath}/${fileName}`
+    } else {
+      return false
+    }
+  }
+
   async create(createUserDto: CreateUserDto) {
     try {
 
@@ -36,7 +45,35 @@ export class UserService {
       user.email = createUserDto.email
       user.password = bcrypt.hashSync(createUserDto.password, 8)
 
-      const userCreated = await this.userRepository.save(user)
+      let userCreated = await this.userRepository.save(user)
+
+      if (createUserDto.base64) {
+
+        if (createUserDto.avatarName && createUserDto.avatarName.endsWith('.jpeg')) {
+
+          const avatarName = `avatar_${Date.now()}.jpeg`
+
+          const montedUrl = await this.mountUrlUserFileDropbox(userCreated.id, 'avatar', avatarName)
+
+          if (montedUrl) {
+
+            const url = await dropbox.uploadFileToDropbox({ urlPathToUpload: montedUrl, base64: createUserDto.base64 })
+
+            userCreated.mimeType = 'image/jpeg'
+            userCreated.avatarName = avatarName,
+              userCreated.urlAvatar = url
+
+            if (url) {
+              userCreated = await this.userRepository.save({ ...userCreated, id: Number(userCreated.id) })
+            }
+
+          }
+
+        } else {
+          loggers.loggerMessage('error', 'A apenas arquivos com extensão jpeg');
+        }
+
+      }
 
       const { password, ...result } = userCreated
 
@@ -188,7 +225,49 @@ export class UserService {
         throw new HttpException(`Você não tem permissão para alterar a Permissão, refaça o login e tente novamente`, HttpStatus.FORBIDDEN)
       }
 
-      return await this.userRepository.save({ ...updateUserDto, id: Number(userId) })
+      if (updateUserDto.base64) {
+
+        if (updateUserDto.avatarName && updateUserDto.avatarName.endsWith('.jpeg')) {
+
+          const deleteAvatar = await this.removeAvatarImage(userId, userReq)
+
+          if (deleteAvatar) {
+
+            const avatarName = `avatar_${Date.now()}.jpeg`
+
+            const montedUrl = await this.mountUrlUserFileDropbox(userId, 'avatar', avatarName)
+
+            if (montedUrl) {
+
+              const url = await dropbox.uploadFileToDropbox({ urlPathToUpload: montedUrl, base64: updateUserDto.base64 })
+
+              updateUserDto.mimeType = 'image/jpeg'
+              updateUserDto.avatarName = avatarName,
+                updateUserDto.urlAvatar = url
+
+              if (!url) {
+                loggers.loggerMessage('error', 'Url não feito upload');
+                throw new HttpException(`Url não feito upload `, HttpStatus.BAD_REQUEST)
+              }
+            }
+          } else {
+            delete updateUserDto.avatarName;
+            delete updateUserDto.base64;
+            delete updateUserDto.mimeType
+          }
+
+
+        } else {
+          loggers.loggerMessage('error', 'A apenas arquivos com extensão jpeg');
+          throw new HttpException(`A apenas arquivos com extensão jpeg `, HttpStatus.BAD_REQUEST)
+        }
+      }
+
+      const userUpdate = await this.userRepository.save({ ...updateUserDto, id: Number(userId) })
+
+      const { base64, ...result } = userUpdate
+
+      return result
 
     } catch (err) {
       loggers.loggerMessage('error', err)
@@ -224,7 +303,7 @@ export class UserService {
         message: JSON.stringify(dataEmail),
         typeQueuRabbit: TypeQueuRabbit.SEND_EMAIL_FORGET_PASSWORD
       }
-            
+
       const queueAdded = await this.rabbitService.create(dataRabbit)
 
       if (queueAdded) {
@@ -339,11 +418,12 @@ export class UserService {
   }
 
   async remove(userId: number) {
-    try {
+    try {     
 
       const deleted = await this.userRepository.delete(Number(userId))
 
       if (deleted.affected > 0) {
+        const deleteFolder = dropbox.deleteFolderUserDropbox(userId)
         return true
       } else {
         return false
@@ -352,6 +432,42 @@ export class UserService {
     } catch (err) {
       loggers.loggerMessage('error', err)
       return exceptions.exceptionsReturn(err)
+    }
+  }
+
+  async removeAvatarImage(userId: number, userReq: any) {
+    try {
+
+      if (userReq.sub !== userId && userReq.role !== Role.ADMIN) {
+        loggers.loggerMessage('error', 'Você não tem permissão para essa ação')
+        throw new HttpException(`Você não tem permissão para essa ação`, HttpStatus.FORBIDDEN)
+      }
+
+      const userExists = await this.userRepository.findOne({ where: { id: userId } })
+
+      if (!userExists || !userExists.urlAvatar) {
+        loggers.loggerMessage('error', 'Usuário não encontrado ou não tem uma url avatar')
+        throw new HttpException(`Usuário não encontrado ou não tem uma url avatar`, HttpStatus.BAD_REQUEST)
+      }
+
+      if (userExists.avatarName) {
+
+        const urlFileDelete = await this.mountUrlUserFileDropbox(userExists.id, 'avatar', userExists.avatarName)
+
+        if (urlFileDelete) {
+          const remove = await dropbox.deleteFileDropbox(`${urlFileDelete}`)
+
+          if (remove) {
+            return true
+          } else {
+            return false
+          }
+        }
+
+      }
+
+    } catch (err) {
+      loggers.loggerMessage('error', err)
     }
   }
 }
