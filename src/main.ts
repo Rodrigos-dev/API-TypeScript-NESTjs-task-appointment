@@ -4,6 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { json, urlencoded } from 'express';
 import * as admin from 'firebase-admin';
 import  dropbox from 'src/commom/dropbox';
+import cloudinary from 'src/commom/cloudinary';
 
 let serviceAccount = null
 
@@ -34,7 +35,8 @@ async function bootstrap() {
   });
 
   await app.listen(process.env.PORT || 3000);
-  //await dropbox.startTokenDropBox()
+
+  await cloudinary.initConfigCloudnary()
 }
 
 bootstrap();

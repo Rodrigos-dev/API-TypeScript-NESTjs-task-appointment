@@ -2,23 +2,10 @@ import loggers from '../utils/loggers';
 import exceptions from '../utils/exceptions';
 import { HttpException, HttpStatus } from '@nestjs/common';
 
-let globalAccessToken: string = ''
-
 interface UploadFileDto {
     urlPathToUpload: string, //é o local exato de onde vamos armazernar o arquivo  no dropbox
     base64: string
 }
-
-// async function startTokenDropBox() {
-//     try {
-//         console.log('Iniciando a aplicação...');
-//         globalAccessToken = process.env.DROPBOX_ACCESS_TOKEN;
-//         await a(); // Atualiza o token assim que a aplicação iniciar
-//         console.log('Aplicação inicializada com sucesso');
-//     } catch (err) {
-//         loggers.loggerMessage('error', 'Erro ao inicializar a aplicação: ' + err.message);
-//     }
-// }
 
 //models to urls users and products
 // assets or files -> process.env.DROPBOX_URL_BASE_TO_UPLOAD_OR_DOWNLOAD/users/userIdOwnerAssets/assets/tipeFile - pdf - txt etc/nameMedia.jpeg
@@ -99,7 +86,7 @@ const prepareBase64File = (base64String) => {
 };
 
 const deleteFolderUserDropbox = async (userId: number) => {
-    try {        
+    try {
 
         if (!userId || userId === undefined) {
             loggers.loggerMessage('error', 'userId deve ser enviado');
@@ -132,7 +119,7 @@ const deleteFolderUserDropbox = async (userId: number) => {
 
 const deleteFileDropbox = async (urlFileTodelete: string) => {
     // exemplo de envio -> users/userId/products/productId/name.jpge ou .txt etc... exemplo de url
-    try {        
+    try {
 
         if (
             !urlFileTodelete.endsWith('.jpeg') &&
@@ -175,5 +162,5 @@ const deleteFileDropbox = async (urlFileTodelete: string) => {
 export default {
     uploadFileToDropbox,
     deleteFolderUserDropbox,
-    deleteFileDropbox   
+    deleteFileDropbox,    
 };

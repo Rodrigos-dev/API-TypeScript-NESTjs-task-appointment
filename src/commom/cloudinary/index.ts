@@ -1,0 +1,125 @@
+import loggers from '../utils/loggers';
+import exceptions from '../utils/exceptions';
+import { HttpException, HttpStatus } from '@nestjs/common';
+
+interface UploadFileDto {
+    urlPathToUpload: string, //nome do caminhos das pastas a criar ou armazenar o file
+    nameFile: string,
+    base64: string
+}
+
+
+const cloudinary = require('cloudinary').v2; // Certifique-se de ter o node-fetch instalado
+
+// Configuração do Cloudinary
+const initConfigCloudnary = async () => {
+    cloudinary.config({
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET
+    });
+}
+
+
+// Função para fazer upload de um arquivo para o Cloudinary
+const uploadFileToCloudinary = async (data: UploadFileDto) => {
+    try {
+        // Verificação de tipo de arquivo
+        if (
+            !data.nameFile.endsWith('.jpeg') &&
+            !data.nameFile.endsWith('.mp4') &&
+            !data.nameFile.endsWith('.pdf') &&
+            !data.nameFile.endsWith('.txt')
+        ) {
+            loggers.loggerMessage('error', 'Apenas arquivos com extensão .jpeg, .mp4, .pdf ou .txt são permitidos');
+            throw new HttpException('Apenas arquivos com extensão .jpeg, .mp4, .pdf ou .txt são permitidos', HttpStatus.BAD_REQUEST);
+        }
+
+        // Limpeza do Base64
+        const cleanedBase64 = prepareBase64File(data.base64);
+
+        // Upload do arquivo para o Cloudinary
+        const result = await cloudinary.uploader.upload(data.base64, {
+            folder: data.urlPathToUpload,
+            public_id: data.nameFile, // Define o caminho do arquivo no Cloudinary
+            resource_type: 'auto', // Detecta automaticamente o tipo do arquivo
+            overwrite: true, // Sobrescreve o arquivo se já existir
+            eager: [{ width: 500, height: 500, crop: 'limit' }] // Exemplo de transformação (opcional)
+        });
+
+        // Retorna a URL do arquivo carregado
+        return result.secure_url // URL segura do arquivo
+
+    } catch (err) {
+        loggers.loggerMessage('error', err.message || err);
+        return exceptions.exceptionsReturn(err);
+    }
+};
+
+// Função auxiliar para limpar o prefixo base64
+const prepareBase64File = (base64String) => {
+    const prefixPattern = /^data:image\/[a-z]+;base64,/;
+    if (prefixPattern.test(base64String)) {
+        return base64String.replace(prefixPattern, ''); // Remove o prefixo
+    }
+    return base64String; // Retorna sem alterações se não houver prefixo
+};
+
+const deleteFolderUserFromCloudinary = async (userId: number) => {
+    try {
+
+        if (!userId || userId === undefined) {
+            loggers.loggerMessage('error', 'userId deve ser enviado');
+            throw new HttpException('userId deve ser enviado', HttpStatus.BAD_REQUEST);
+        }
+
+        //OBS: modelo da url para apagar tudo que tiver dendro dela -> `users/userId/` -> tem que ser assim sem barr inicial e com barra no final perceba
+        
+        //apagar td os arquivos debtro da pasta incluindo subpastas
+        const resources = await cloudinary.api.delete_resources_by_prefix(`users/${userId}/`)
+
+        // Passo 3: Deletar a pasta depois de remover os arquivos
+        const deleteFolderResponse = await cloudinary.api.delete_folder(`users/${userId}/`);
+        console.log('Pasta deletada com sucesso:', deleteFolderResponse);
+    } catch (error) {
+        console.error('Erro ao deletar arquivos ou pasta:', error);
+    }
+};
+
+// Função para deletar um arquivo do Cloudinary
+const deleteFileFromCloudinary = async (urlPathToDelete) => {
+    try {
+
+        if (
+            !urlPathToDelete.endsWith('.jpeg') &&
+            !urlPathToDelete.endsWith('.mp4') &&
+            !urlPathToDelete.endsWith('.pdf') &&
+            !urlPathToDelete.endsWith('.txt')
+        ) {
+            loggers.loggerMessage('error', 'Apenas arquivos com extensão .jpeg, .mp4, .pdf ou .txt são permitidos');
+            throw new HttpException('Apenas arquivos com extensão .jpeg, .mp4, .pdf ou .txt são permitidos', HttpStatus.BAD_REQUEST);
+        }
+
+
+        // Deleta o arquivo do Cloudinary usando o caminho (public_id)
+        const result = await cloudinary.uploader.destroy(urlPathToDelete);
+        if (result.result === 'ok') {
+            console.log('Arquivo deletado com sucesso:', result);
+            return true;
+        } else {
+            loggers.loggerMessage('error', 'Falha ao deletar arquivo do Cloudinary');
+            throw new HttpException('Falha ao deletar arquivo do Cloudinary', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    } catch (err) {
+        loggers.loggerMessage('error', err.message || err);
+        return exceptions.exceptionsReturn(err);
+    }
+};
+
+// Exportando as funções
+export default {
+    initConfigCloudnary,
+    uploadFileToCloudinary,
+    deleteFileFromCloudinary,
+    deleteFolderUserFromCloudinary    
+};

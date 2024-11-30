@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import loggers from 'src/commom/utils/loggers';
 import dropbox from 'src/commom/dropbox';
+import cloudinary from 'src/commom/cloudinary';
 import { ForgetPasswordDto } from './dto/forget-password.dto';
 import { EmailSendService } from 'src/email-send/email-send.service';
 import { UpdatePasswordDto } from './dto/update-password.dto';
@@ -23,9 +24,9 @@ export class UserService {
     private rabbitService: RabbitService
   ) { }
 
-  async mountUrlUserFileDropbox(userId: number, typePath: 'avatar' | 'other', fileName: string) {
-    if (userId && typePath && fileName) {
-      return `users/${userId}/${typePath}/${fileName}`
+  async mountUrlUserFileDropbox(userId: number, typePath: 'avatar' | 'other') {
+    if (userId && typePath) {
+      return `users/${userId}/${typePath}`
     } else {
       return false
     }
@@ -53,11 +54,13 @@ export class UserService {
 
           const avatarName = `avatar_${Date.now()}.jpeg`
 
-          const montedUrl = await this.mountUrlUserFileDropbox(userCreated.id, 'avatar', avatarName)
+          const montedUrl = await this.mountUrlUserFileDropbox(userCreated.id, 'avatar')
 
           if (montedUrl) {
 
-            const url = await dropbox.uploadFileToDropbox({ urlPathToUpload: montedUrl, base64: createUserDto.base64 })
+            //const url = await dropbox.uploadFileToDropbox({ urlPathToUpload: montedUrl, base64: createUserDto.base64 })
+
+            const url = await cloudinary.uploadFileToCloudinary({ urlPathToUpload: montedUrl, base64: createUserDto.base64, nameFile: avatarName })
 
             userCreated.mimeType = 'image/jpeg'
             userCreated.avatarName = avatarName,
@@ -235,11 +238,12 @@ export class UserService {
 
             const avatarName = `avatar_${Date.now()}.jpeg`
 
-            const montedUrl = await this.mountUrlUserFileDropbox(userId, 'avatar', avatarName)
+            const montedUrl = await this.mountUrlUserFileDropbox(userId, 'avatar')
 
             if (montedUrl) {
 
-              const url = await dropbox.uploadFileToDropbox({ urlPathToUpload: montedUrl, base64: updateUserDto.base64 })
+              //const url = await dropbox.uploadFileToDropbox({ urlPathToUpload: montedUrl, base64: updateUserDto.base64 })
+              const url = await cloudinary.uploadFileToCloudinary({ urlPathToUpload: montedUrl, base64: updateUserDto.base64, nameFile: avatarName })
 
               updateUserDto.mimeType = 'image/jpeg'
               updateUserDto.avatarName = avatarName,
@@ -423,7 +427,8 @@ export class UserService {
       const deleted = await this.userRepository.delete(Number(userId))
 
       if (deleted.affected > 0) {
-        const deleteFolder = dropbox.deleteFolderUserDropbox(userId)
+        //const deleteFolder = dropbox.deleteFolderUserDropbox(userId)  
+        const deleteFolder = cloudinary.deleteFolderUserFromCloudinary(84)      
         return true
       } else {
         return false
@@ -438,7 +443,7 @@ export class UserService {
   async removeAvatarImage(userId: number, userReq: any) {
     try {
 
-      if (userReq.sub !== userId && userReq.role !== Role.ADMIN) {
+      if (userReq.sub !== userId && userReq.role !== Role.USER) {
         loggers.loggerMessage('error', 'Você não tem permissão para essa ação')
         throw new HttpException(`Você não tem permissão para essa ação`, HttpStatus.FORBIDDEN)
       }
@@ -452,10 +457,11 @@ export class UserService {
 
       if (userExists.avatarName) {
 
-        const urlFileDelete = await this.mountUrlUserFileDropbox(userExists.id, 'avatar', userExists.avatarName)
+        const urlPathFileDelete = await this.mountUrlUserFileDropbox(userExists.id, 'avatar')
 
-        if (urlFileDelete) {
-          const remove = await dropbox.deleteFileDropbox(`${urlFileDelete}`)
+        if (urlPathFileDelete) {
+          //const remove = await dropbox.deleteFileDropbox(`${urlFileDelete}`)
+          const remove = await cloudinary.deleteFileFromCloudinary(`${urlPathFileDelete}/${userExists.avatarName}`)
 
           if (remove) {
             return true
