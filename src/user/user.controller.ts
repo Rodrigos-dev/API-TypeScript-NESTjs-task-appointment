@@ -94,7 +94,6 @@ export class UserController {
     return this.userService.remove(+userId);
   }
 
-
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete('removeAvatarImage/:userId')  
   removeAvatarImage(@Param('userId') userId: string, @UserReq() userReq: User) {

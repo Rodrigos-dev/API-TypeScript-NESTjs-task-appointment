@@ -12,12 +12,16 @@ interface UploadFileDto {
 const cloudinary = require('cloudinary').v2; // Certifique-se de ter o node-fetch instalado
 
 // Configuração do Cloudinary
+let folderApiName = null
+
 const initConfigCloudnary = async () => {
     cloudinary.config({
         cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
         api_key: process.env.CLOUDINARY_API_KEY,
         api_secret: process.env.CLOUDINARY_API_SECRET
     });
+
+    folderApiName = process.env.ENVIRONMENT === 'development' ? process.env.FOLDER_API_NAME_CLOUDNARY_DEV : process.env.FOLDER_API_NAME_CLOUDNARY_PROD
 }
 
 
@@ -40,7 +44,7 @@ const uploadFileToCloudinary = async (data: UploadFileDto) => {
 
         // Upload do arquivo para o Cloudinary
         const result = await cloudinary.uploader.upload(data.base64, {
-            folder: data.urlPathToUpload,
+            folder: `${folderApiName}/${data.urlPathToUpload}`,
             public_id: data.nameFile, // Define o caminho do arquivo no Cloudinary
             resource_type: 'auto', // Detecta automaticamente o tipo do arquivo
             overwrite: true, // Sobrescreve o arquivo se já existir
@@ -76,10 +80,10 @@ const deleteFolderUserFromCloudinary = async (userId: number) => {
         //OBS: modelo da url para apagar tudo que tiver dendro dela -> `users/userId/` -> tem que ser assim sem barr inicial e com barra no final perceba
         
         //apagar td os arquivos debtro da pasta incluindo subpastas
-        const resources = await cloudinary.api.delete_resources_by_prefix(`users/${userId}/`)
+        const resources = await cloudinary.api.delete_resources_by_prefix(`${folderApiName}/users/${userId}/`)
 
         // Passo 3: Deletar a pasta depois de remover os arquivos
-        const deleteFolderResponse = await cloudinary.api.delete_folder(`users/${userId}/`);
+        const deleteFolderResponse = await cloudinary.api.delete_folder(`${folderApiName}/users/${userId}/`);
         console.log('Pasta deletada com sucesso:', deleteFolderResponse);
     } catch (error) {
         console.error('Erro ao deletar arquivos ou pasta:', error);
@@ -102,7 +106,7 @@ const deleteFileFromCloudinary = async (urlPathToDelete) => {
 
 
         // Deleta o arquivo do Cloudinary usando o caminho (public_id)
-        const result = await cloudinary.uploader.destroy(urlPathToDelete);
+        const result = await cloudinary.uploader.destroy(`${folderApiName}/${urlPathToDelete}`);
         if (result.result === 'ok') {
             console.log('Arquivo deletado com sucesso:', result);
             return true;

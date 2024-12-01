@@ -428,7 +428,7 @@ export class UserService {
 
       if (deleted.affected > 0) {
         //const deleteFolder = dropbox.deleteFolderUserDropbox(userId)  
-        const deleteFolder = cloudinary.deleteFolderUserFromCloudinary(84)      
+        const deleteFolder = cloudinary.deleteFolderUserFromCloudinary(userId)      
         return true
       } else {
         return false
@@ -443,7 +443,7 @@ export class UserService {
   async removeAvatarImage(userId: number, userReq: any) {
     try {
 
-      if (userReq.sub !== userId && userReq.role !== Role.USER) {
+      if (userReq.sub !== userId && userReq.role !== Role.ADMIN) {
         loggers.loggerMessage('error', 'Você não tem permissão para essa ação')
         throw new HttpException(`Você não tem permissão para essa ação`, HttpStatus.FORBIDDEN)
       }
