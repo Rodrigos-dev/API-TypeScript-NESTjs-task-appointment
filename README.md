@@ -28,6 +28,12 @@
 
 api feita com nest.JS typeScripty para iniciar qualquer projeto a partir dela
 
+* para rodar a api primeiro rode npm install, rode o docker e rode pelo menos o rebbitmq para conectar - docker compose up rabbitmq -d, e de play no docker depois rode debugger ou npm run start:dev
+
+* mysql, typeorm, user CRUD, envia email, esqueceu senha, atualizar senha, login, token, refresh token,
+validate no dto, storage firebase, storage drop box, storage cloudnary, decorators personalizados role permission,
+docker, filas com pub sub, rabbitmq, redis, logger para retornar erros no console 
+
 * MAPA PASSO A PASSO
 
 * 001 - TYPE ORM
