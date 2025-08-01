@@ -3,7 +3,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import exceptions from 'src/commom/utils/exceptions';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Role, User } from './entities/user.entity';
+import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import loggers from 'src/commom/utils/loggers';
@@ -14,6 +14,9 @@ import { EmailSendService } from 'src/email-send/email-send.service';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { RabbitService } from 'src/rabbit/rabbit.service';
 import { CreateRabbitDto, TypeQueuRabbit } from 'src/rabbit/dto/create-rabbit.dto';
+import { RoleEnum, UserTypePathBucketEnum } from 'src/commom/enums/user-enums';
+import { CurrentUserDto } from 'src/auth/dto/current-user-dto';
+import { UserFindAllByQueryDto, UserFindAllDto } from './dto/query-filters.dto';
 
 @Injectable()
 export class UserService {
@@ -24,7 +27,7 @@ export class UserService {
     private rabbitService: RabbitService
   ) { }
 
-  async mountUrlUserFileDropbox(userId: number, typePath: 'avatar' | 'other') {
+  async mountUrlUserFileBucket(userId: number, typePath: UserTypePathBucketEnum) {
     if (userId && typePath) {
       return `users/${userId}/${typePath}`
     } else {
@@ -48,23 +51,25 @@ export class UserService {
 
       let userCreated = await this.userRepository.save(user)
 
-      if (createUserDto.base64) {
+      if (createUserDto.avatar && createUserDto.avatar.base64) {
 
-        if (createUserDto.avatarName && createUserDto.avatarName.endsWith('.jpeg')) {
+        if (createUserDto.avatar.avatarName && createUserDto.avatar.avatarName.endsWith('.jpeg')) {
 
           const avatarName = `avatar_${Date.now()}.jpeg`
 
-          const montedUrl = await this.mountUrlUserFileDropbox(userCreated.id, 'avatar')
+          const montedUrl = await this.mountUrlUserFileBucket(userCreated.id, UserTypePathBucketEnum.AVATAR)
 
           if (montedUrl) {
 
             //const url = await dropbox.uploadFileToDropbox({ urlPathToUpload: montedUrl, base64: createUserDto.base64 })
 
-            const url = await cloudinary.uploadFileToCloudinary({ urlPathToUpload: montedUrl, base64: createUserDto.base64, nameFile: avatarName })
+            const url = await cloudinary.uploadFileToCloudinary({ urlPathToUpload: montedUrl, base64: createUserDto.avatar.base64, nameFile: avatarName })
 
-            userCreated.mimeType = 'image/jpeg'
-            userCreated.avatarName = avatarName,
-              userCreated.urlAvatar = url
+            userCreated.avatar = {
+              mimeType: 'image/jpeg',
+              avatarName: avatarName,
+              urlAvatar: url, // substitua por `url` se você descomentar o upload
+            };
 
             if (url) {
               userCreated = await this.userRepository.save({ ...userCreated, id: Number(userCreated.id) })
@@ -87,11 +92,7 @@ export class UserService {
     }
   }
 
-  async findAll(req: any, query: {
-    page: number;
-    take: number;
-    orderBy: 'ASC' | 'DESC';
-  }) {
+  async findAll(req: any, query: UserFindAllDto) {
     try {
 
       let { page, take, orderBy } = query;
@@ -156,14 +157,7 @@ export class UserService {
     }
   }
 
-  async findAllByQuery(query: {
-    userId: number
-    email: string,
-    name: string,
-    page: number;
-    take: number;
-    orderBy: 'ASC' | 'DESC';
-  }) {
+  async findAllByQuery(query: UserFindAllByQueryDto) {
     try {
 
       let { page, take, orderBy, userId, email, name } = query;
@@ -205,11 +199,11 @@ export class UserService {
     }
   }
 
-  async update(userId: number, updateUserDto: UpdateUserDto, userReq: User) {
+  async update(userId: number, updateUserDto: UpdateUserDto, userReq: CurrentUserDto) {
     try {
 
-      if (updateUserDto.password) {
-        throw new HttpException(`Esse metodo não atualiza o password`, HttpStatus.NOT_FOUND);
+      if(Number(userId) !== Number(userReq.sub) && userReq.role !== RoleEnum.ADMIN) { 
+        throw new HttpException(`Somente o proprio usuário ou um administrador pode alterar dados`, HttpStatus.FORBIDDEN)
       }
 
       if (updateUserDto.email) {
@@ -222,15 +216,20 @@ export class UserService {
         if (userExistsWithThisEmail && userExistsWithThisEmail.email.toLowerCase() === updateUserDto.email.toLowerCase()) {
           throw new HttpException(`Seu email cadastrado já é esse`, HttpStatus.BAD_REQUEST);
         }
-      }
+      }      
 
-      if (updateUserDto.role && userReq.role !== Role.ADMIN) {
+      if (updateUserDto.role && userReq.role !== RoleEnum.ADMIN) {
         throw new HttpException(`Você não tem permissão para alterar a Permissão, refaça o login e tente novamente`, HttpStatus.FORBIDDEN)
       }
 
-      if (updateUserDto.base64) {
+      if (updateUserDto.avatar && updateUserDto.avatar.base64) {
 
-        if (updateUserDto.avatarName && updateUserDto.avatarName.endsWith('.jpeg')) {
+        if (updateUserDto.avatar.base64 === '') {
+          loggers.loggerMessage('error', `Base 64 não pode ser ''`);
+          throw new HttpException(`Base 64 não pode ser ''`, HttpStatus.BAD_REQUEST)
+        }
+
+        if (updateUserDto.avatar.avatarName && updateUserDto.avatar.avatarName.endsWith('.jpeg')) {
 
           const deleteAvatar = await this.removeAvatarImage(userId, userReq)
 
@@ -238,26 +237,30 @@ export class UserService {
 
             const avatarName = `avatar_${Date.now()}.jpeg`
 
-            const montedUrl = await this.mountUrlUserFileDropbox(userId, 'avatar')
+            const montedUrl = await this.mountUrlUserFileBucket(userId, UserTypePathBucketEnum.AVATAR)
 
             if (montedUrl) {
 
               //const url = await dropbox.uploadFileToDropbox({ urlPathToUpload: montedUrl, base64: updateUserDto.base64 })
-              const url = await cloudinary.uploadFileToCloudinary({ urlPathToUpload: montedUrl, base64: updateUserDto.base64, nameFile: avatarName })
-
-              updateUserDto.mimeType = 'image/jpeg'
-              updateUserDto.avatarName = avatarName,
-                updateUserDto.urlAvatar = url
+              const url = await cloudinary.uploadFileToCloudinary({ urlPathToUpload: montedUrl, base64: updateUserDto.avatar.base64, nameFile: avatarName })
 
               if (!url) {
                 loggers.loggerMessage('error', 'Url não feito upload');
                 throw new HttpException(`Url não feito upload `, HttpStatus.BAD_REQUEST)
               }
+
+              updateUserDto.avatar = {
+                mimeType: 'image/jpeg',
+                avatarName,
+                urlAvatar: 'url 2',
+                base64: ''
+              };
+
+              delete updateUserDto.avatar.base64
+              
             }
           } else {
-            delete updateUserDto.avatarName;
-            delete updateUserDto.base64;
-            delete updateUserDto.mimeType
+            delete updateUserDto.avatar;
           }
 
 
@@ -267,11 +270,9 @@ export class UserService {
         }
       }
 
-      const userUpdate = await this.userRepository.save({ ...updateUserDto, id: Number(userId) })
+      const userUpdate = await this.userRepository.save({ ...updateUserDto, id: Number(userId) })      
 
-      const { base64, ...result } = userUpdate
-
-      return result
+      return userUpdate
 
     } catch (err) {
       loggers.loggerMessage('error', err)
@@ -422,13 +423,13 @@ export class UserService {
   }
 
   async remove(userId: number) {
-    try {     
+    try {
 
       const deleted = await this.userRepository.delete(Number(userId))
 
       if (deleted.affected > 0) {
         //const deleteFolder = dropbox.deleteFolderUserDropbox(userId)  
-        const deleteFolder = cloudinary.deleteFolderUserFromCloudinary(userId)      
+        const deleteFolder = cloudinary.deleteFolderUserFromCloudinary(userId)
         return true
       } else {
         return false
@@ -440,28 +441,28 @@ export class UserService {
     }
   }
 
-  async removeAvatarImage(userId: number, userReq: any) {
+  async removeAvatarImage(userId: number, userReq: CurrentUserDto) {
     try {
 
-      if (userReq.sub !== userId && userReq.role !== Role.ADMIN) {
+      if (userReq.sub !== userId && userReq.role !== RoleEnum.ADMIN) {
         loggers.loggerMessage('error', 'Você não tem permissão para essa ação')
         throw new HttpException(`Você não tem permissão para essa ação`, HttpStatus.FORBIDDEN)
       }
 
       const userExists = await this.userRepository.findOne({ where: { id: userId } })
 
-      if (!userExists || !userExists.urlAvatar) {
+      if (!userExists || !userExists.avatar.urlAvatar) {
         loggers.loggerMessage('error', 'Usuário não encontrado ou não tem uma url avatar')
         throw new HttpException(`Usuário não encontrado ou não tem uma url avatar`, HttpStatus.BAD_REQUEST)
       }
 
-      if (userExists.avatarName) {
+      if (userExists.avatar.avatarName) {
 
-        const urlPathFileDelete = await this.mountUrlUserFileDropbox(userExists.id, 'avatar')
+        const urlPathFileDelete = await this.mountUrlUserFileBucket(userExists.id, UserTypePathBucketEnum.AVATAR)
 
         if (urlPathFileDelete) {
           //const remove = await dropbox.deleteFileDropbox(`${urlFileDelete}`)
-          const remove = await cloudinary.deleteFileFromCloudinary(`${urlPathFileDelete}/${userExists.avatarName}`)
+          const remove = await cloudinary.deleteFileFromCloudinary(`${urlPathFileDelete}/${userExists.avatar.avatarName}`)
 
           if (remove) {
             return true

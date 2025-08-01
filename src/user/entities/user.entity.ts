@@ -1,8 +1,10 @@
+import { RoleEnum } from "src/commom/enums/user-enums";
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, Index, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
-export enum Role {
-    ADMIN = 'admin',
-    USER = 'user',
+export class Avatar {
+  urlAvatar: string;
+  avatarName: string;
+  mimeType: string;
 }
 
 @Entity()
@@ -22,24 +24,18 @@ export class User {
     @Column()
     password: string;
 
-    @Column({ nullable: true})
+    @Column({ nullable: true })
     codeForgetPassword: string;
-    
+
     @Column({
         type: 'enum',
-        enum: Role,
-        default: Role.USER, // Define um valor padrão, se necessário
+        enum: RoleEnum,
+        default: RoleEnum.USER, // Define um valor padrão, se necessário
     })
-    role: Role;
+    role: RoleEnum;
 
-    @Column({ nullable: true})
-    urlAvatar: string;
-
-    @Column({ nullable: true})
-    avatarName: string;
-
-    @Column({ nullable: true})
-    mimeType: string;
+    @Column({ type: 'simple-json', nullable: true })
+    avatar: Avatar;    
 
     @CreateDateColumn({ type: 'timestamp' })
     createdAt: Date;

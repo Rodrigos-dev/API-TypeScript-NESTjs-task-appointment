@@ -3,13 +3,15 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { Role, User } from './entities/user.entity';
 import { UserReq } from 'src/commom/decorators/user-request.decorator';
 import { AuthRole } from 'src/commom/decorators/roles.decorator';
 import { RolesGuard } from 'src/commom/guards/roles.guard';
 import { ForgetPasswordDto } from './dto/forget-password.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import loggers from 'src/commom/utils/loggers';
+import { CurrentUserDto } from 'src/auth/dto/current-user-dto';
+import { UserFindAllByQueryDto, UserFindAllDto } from './dto/query-filters.dto';
+import { RoleEnum } from 'src/commom/enums/user-enums';
 
 @Controller('user')
 export class UserController {
@@ -41,7 +43,7 @@ export class UserController {
   update(
     @Param('userId') userId: string,
     @Body() updateUserDto: UpdateUserDto,
-    @UserReq() userReq: User
+    @UserReq() userReq: CurrentUserDto
   ) {
     return this.userService.update(+userId, updateUserDto, userReq);
   }
@@ -54,18 +56,14 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  findAll(@Req() req: any, @Query() query: {
-    page: number;
-    take: number;
-    orderBy: 'ASC' | 'DESC'
-  }) {
+  findAll(@Req() req: any, @Query() query: UserFindAllDto) {
     return this.userService.findAll(req, query);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get(':userId')
-  @AuthRole(Role.ADMIN, Role.USER)
-  findOneById(@Param('userId') userId: string, @UserReq() userReq: User) {
+  @AuthRole(RoleEnum.ADMIN, RoleEnum.USER)
+  findOneById(@Param('userId') userId: string, @UserReq() userReq: CurrentUserDto) {
     return this.userService.findOneById(+userId);
   }
 
@@ -77,14 +75,7 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Get('list/findAllByQuery')
-  findAllByQuery(@Req() req: any, @Query() query: {
-    userId: number
-    email: string,
-    name: string,
-    page: number;
-    take: number;
-    orderBy: 'ASC' | 'DESC'
-  }) {
+  findAllByQuery(@Req() req: any, @Query() query: UserFindAllByQueryDto) {
     return this.userService.findAllByQuery(query);
   }
 
@@ -96,7 +87,7 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete('removeAvatarImage/:userId')  
-  removeAvatarImage(@Param('userId') userId: string, @UserReq() userReq: User) {
+  removeAvatarImage(@Param('userId') userId: string, @UserReq() userReq: CurrentUserDto) {
     return this.userService.removeAvatarImage(+userId, userReq);
   }
 }
