@@ -24,6 +24,29 @@ const initConfigCloudnary = async () => {
     folderApiName = process.env.ENVIRONMENT === 'development' ? process.env.FOLDER_API_NAME_CLOUDNARY_DEV : process.env.FOLDER_API_NAME_CLOUDNARY_PROD
 }
 
+const generateSignedUploadUrl = async (urlDestination: string, nameFile?: string) => {//const folderDestination = `users/${userId}/produtos`;
+    const timestamp = Math.floor(Date.now() / 1000); // Timestamp atual duracao da url
+
+    // Geração da assinatura com os parâmetros necessários
+    const signature = cloudinary.utils.api_sign_request(
+        { timestamp, urlDestination, public_id: nameFile, resource_type: 'auto' }, // Define o tipo como 'auto' para detecção automática podendo ser video | image | auto -> auto o proprio cloudnary detecta
+        process.env.CLOUDINARY_API_SECRET,
+    );
+
+    // Retorna a URL fixa e os parâmetros necessários para o upload
+    return {
+        url: `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/upload`, // URL fixa para upload
+        params: {
+            timestamp,
+            urlDestination,
+            public_id: nameFile, // Public ID opcional.. porem poder ser o nome da imagem ou video para ser garantido unico enviado pela api
+            resource_type: 'auto', // Define o tipo como 'auto' para detecção automática podendo ser video | image | auto -> auto o proprio cloudnary detecta
+            api_key: process.env.CLOUDINARY_API_KEY,
+            signature,
+        },
+    };
+};
+
 
 // Função para fazer upload de um arquivo para o Cloudinary
 const uploadFileToCloudinary = async (data: UploadFileDto) => {
@@ -61,7 +84,7 @@ const uploadFileToCloudinary = async (data: UploadFileDto) => {
 };
 
 // Função auxiliar para limpar o prefixo base64
-const prepareBase64File = (base64String) => {
+const prepareBase64File = (base64String: string) => {
     const prefixPattern = /^data:image\/[a-z]+;base64,/;
     if (prefixPattern.test(base64String)) {
         return base64String.replace(prefixPattern, ''); // Remove o prefixo
@@ -84,14 +107,14 @@ const deleteFolderUserFromCloudinary = async (userId: number) => {
 
         // Passo 3: Deletar a pasta depois de remover os arquivos
         const deleteFolderResponse = await cloudinary.api.delete_folder(`${folderApiName}/users/${userId}/`);
-        console.log('Pasta deletada com sucesso:', deleteFolderResponse);
+        console.log('Pasta deletada com sucesso: - index.ts:110', deleteFolderResponse);
     } catch (error) {
-        console.error('Erro ao deletar arquivos ou pasta:', error);
+        console.error('Erro ao deletar arquivos ou pasta: - index.ts:112', error);
     }
 };
 
 // Função para deletar um arquivo do Cloudinary
-const deleteFileFromCloudinary = async (urlPathToDelete) => {
+const deleteFileFromCloudinary = async (urlPathToDelete: string) => {
     try {
 
         if (
@@ -108,7 +131,7 @@ const deleteFileFromCloudinary = async (urlPathToDelete) => {
         // Deleta o arquivo do Cloudinary usando o caminho (public_id)
         const result = await cloudinary.uploader.destroy(`${folderApiName}/${urlPathToDelete}`);
         if (result.result === 'ok') {
-            console.log('Arquivo deletado com sucesso:', result);
+            console.log('Arquivo deletado com sucesso: - index.ts:134', result);
             return true;
         } else {
             loggers.loggerMessage('error', 'Falha ao deletar arquivo do Cloudinary');
@@ -122,6 +145,7 @@ const deleteFileFromCloudinary = async (urlPathToDelete) => {
 
 // Exportando as funções
 export default {
+    generateSignedUploadUrl,
     initConfigCloudnary,
     uploadFileToCloudinary,
     deleteFileFromCloudinary,

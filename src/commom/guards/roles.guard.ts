@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Role } from 'src/user/entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import loggers from '../utils/loggers';
+import { RoleEnum } from '../enums/user-enums';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const roles = this.reflector.get<Role[]>('roles', context.getHandler());
+    const roles = this.reflector.get<RoleEnum[]>('roles', context.getHandler());
     if (!roles) {
       loggers.loggerMessage('error', 'Nenhuma permissão encontrada')
       return true;  
