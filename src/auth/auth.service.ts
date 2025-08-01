@@ -4,6 +4,8 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import exceptions from 'src/commom/utils/exceptions';
 import loggers from 'src/commom/utils/loggers';
+import { CurrentUserDto } from './dto/current-user-dto';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -35,9 +37,9 @@ export class AuthService {
 
     }
 
-    async login(userPayload: any, refresh?: boolean) {
+    async login(userPayload: User, refresh?: boolean) {
 
-        let user: any = {}
+        let user = null
 
         if(!refresh){
             refresh = false
@@ -55,7 +57,12 @@ export class AuthService {
             throw new HttpException(`Usuario não encontrado refaça o login!`, HttpStatus.NOT_FOUND);
         }
 
-        const payload = { sub: user.id, username: user.name, email: user.email, role: user.role };
+        const payload: CurrentUserDto = { 
+            sub: user.id, 
+            username: user.name, 
+            email: user.email, 
+            role: user.role 
+        };
 
         //Generate 2 tokens
         user.access_token = await this.generateOneHourToken(payload);// token to use 
@@ -67,14 +74,14 @@ export class AuthService {
     }
 
     // Generate token expire 1 hour
-    async generateOneHourToken(payload: any) {
+    async generateOneHourToken(payload: CurrentUserDto) {
         return this.jwtService.sign(payload, {
             expiresIn: '1h', // 1 hora de expiração
         });
     }
 
     // GGenerate token expire 30 hour
-    async generateThirtyHourToken(payload: any) {
+    async generateThirtyHourToken(payload: CurrentUserDto) {
         return this.jwtService.sign(payload, {
             expiresIn: '30h', // 3 horas de expiração
         });

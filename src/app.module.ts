@@ -13,6 +13,7 @@ import { EmailSendModule } from './email-send/email-send.module';
 import { RabbitModule } from './rabbit/rabbit.module';
 import { PushNotificationModule } from './push-notification/push-notification.module';
 import { DeviceRegisterModule } from './device-register/device-register.module';
+import { BucketModule } from './bucket/bucket.module';
 
 
 @Module({
@@ -41,7 +42,8 @@ import { DeviceRegisterModule } from './device-register/device-register.module';
   EmailSendModule,
   RabbitModule,
   PushNotificationModule,
-  DeviceRegisterModule
+  DeviceRegisterModule,
+  BucketModule
   ],
   controllers: [AppController],
   providers: [AppService,

@@ -1,27 +1,3 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
-
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
-
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
-
 ## Description
 
 #PADRAO INICIAL DE UMA API NEST
@@ -71,7 +47,8 @@ docker, filas com pub sub, rabbitmq, redis, logger para retornar erros no consol
 * 007 - CONFIGURADO RABIT MQ PELO DOCKER ENVIANDO MSG NA FILA E CONSUMINDO AS MSGS FAZENDO O TRABALHO QUE NO CASO É ENVIAR EMAIL
 DIFERENTES NO CONTROLLER
 
-* 008 - FIREBASE BUCKET STORAGE - ADD O BUCKET NO CLASSIFIELD E TEM A EXPLICACAO AQUI POREM AKI NAO COLOQUEI PQ O GOOGLE NAO PERMITE FREE SEM POR O CARTAO
+* 008 - FIREBASE BUCKET STORAGE - ADD O BUCKET NO CLASSIFIELD API (nessa nao tem) caso precise.
+* 008 - GCP BUCKET STORAGE - ADD O BUCKET em outra API (nessa nao tem) caso precise.
 
 * 009 - FIREBASE PUSH NOTIFICATION - ADD FORMA DE ENVIAR O PUSH NOTIFICATION PELO FIREBASE
 * 009 - FIREBASE REGISTER-DEVICE - ENTIDADE REGISTER DEVICE PARA SALVAR O TOKEN DO FIREBASE NO BANCO
@@ -82,10 +59,11 @@ DIFERENTES NO CONTROLLER
 *0010 - UPDATE USER REMOVE IMAGEM DROP BOX E ADD IMAGEM NOVA
 *0010 - DELETE USER REMOVE A PASTA TODA DO USUARIO
 
-*0011 - CLOUDNARY BUCKET - BUCKET PARA UPLOAD DE MEDIAS 
+*0011 - CLOUDNARY BUCKET - BUCKET PARA UPLOAD DE MIDIAS 
 *0011 - FEITO O UPLOAD - REMOVE TODA PASTA - REMOVE ARQUIVO
 *0011 - ADD NO CREATE USER - UPDATE USER - DELETE USER - DELETE IMAGE AVATAR USER
-*0011 - BASICAMENTE FIREBASE - DROPBOX - CLOUDNARY - SÃO BUCKETS DE MEDIAS E STORAGE
+*0011 - BASICAMENTE FIREBASE - DROPBOX - CLOUDNARY - SÃO BUCKETS DE MIDIAS E 
+*0011 - ADD TB METODO PARA PEGAR AS URLS DAS MEDIAS E SUBIR DIRETAMENTE PELO FRONT.
 
 ## Project setup
 
