@@ -6,9 +6,9 @@ import { CreateRabbitDto } from './dto/create-rabbit.dto';
 export class RabbitController {
   constructor(private readonly rabbitService: RabbitService) {}
 
-  @Post()
-  create(@Body() createRabbitDto: CreateRabbitDto) {
-    return this.rabbitService.create(createRabbitDto);
-  }
+  // @Post()
+  // create(@Body() createRabbitDto: CreateRabbitDto) {
+  //   return this.rabbitService.create(createRabbitDto);
+  // }
   
 }

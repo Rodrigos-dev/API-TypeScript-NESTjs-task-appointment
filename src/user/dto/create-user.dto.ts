@@ -1,15 +1,19 @@
 import { Type } from "class-transformer";
 import { IsEmail, IsNotEmpty, IsOptional, Matches, MinLength, ValidateNested } from "class-validator";
 import { AvatarDto } from "./avatar.dto";
+import { ApiProperty } from "@nestjs/swagger";
 
 export class CreateUserDto {
+    @ApiProperty()
     @IsNotEmpty({ message: 'O nome é obrigatório.' })
     name: string;
 
+    @ApiProperty()
     @IsEmail({}, { message: 'O email deve ser um endereço de email válido.' })
     @IsNotEmpty({ message: 'O email é obrigatório.' })
     email: string;
 
+    @ApiProperty()
     @IsNotEmpty({ message: 'A senha é obrigatória.' })
     @MinLength(6, { message: 'A senha deve ter no mínimo 6 caracteres.' })
     @Matches(/^(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>/\\]).*$/, {
@@ -17,6 +21,7 @@ export class CreateUserDto {
     })
     password: string;
 
+    @ApiProperty()
     @IsNotEmpty({ message: 'A senha é obrigatória.' })
     @MinLength(6, { message: 'A senha deve ter no mínimo 6 caracteres.' })
     @Matches(/^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>/\\]).*$/, {
@@ -24,6 +29,7 @@ export class CreateUserDto {
     })
     confirmPassword: string;
 
+    @ApiProperty()
     @IsOptional()
     @ValidateNested()
     @Type(() => AvatarDto)

@@ -17,6 +17,7 @@ import { CreateRabbitDto, TypeQueuRabbit } from 'src/rabbit/dto/create-rabbit.dt
 import { RoleEnum, UserTypePathBucketEnum } from 'src/commom/enums/user-enums';
 import { CurrentUserDto } from 'src/auth/dto/current-user-dto';
 import { UserFindAllByQueryDto, UserFindAllDto } from './dto/query-filters.dto';
+import { UpdatePasswordEmailCodeDto } from './dto/update-password-email-code.dto';
 
 @Injectable()
 export class UserService {
@@ -252,7 +253,7 @@ export class UserService {
               updateUserDto.avatar = {
                 mimeType: 'image/jpeg',
                 avatarName,
-                urlAvatar: 'url 2',
+                urlAvatar: url,
                 base64: ''
               };
 
@@ -345,7 +346,7 @@ export class UserService {
     }
   }
 
-  async updatePassword(data: UpdatePasswordDto, codeForgetPassword?: string) {
+  async updatePassword(data: UpdatePasswordDto | UpdatePasswordEmailCodeDto, codeForgetPassword?: string) {
     try {
 
       let userExists = null

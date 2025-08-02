@@ -136,8 +136,13 @@ export class PushNotificationService {
     }
   }
 
-  async delete(pushIds: [number]){
+  async delete(pushIds: number[]){
     try{
+
+      if(pushIds.length === 0) {
+        loggers.loggerMessage('error', 'Id ou ids doa notificação a ser deletada deve ser enviada/s')
+        throw new HttpException(`Id ou ids doa notificação a ser deletada deve ser enviada/s`, HttpStatus.BAD_REQUEST)
+      }
 
       return await this.pushNotificationRepository.delete(pushIds)
       

@@ -6,8 +6,8 @@ import { CreateEmailSendDto } from './dto/create-email-send.dto';
 export class EmailSendController {
   constructor(private readonly emailSendService: EmailSendService) {}
 
-  @Post()
-  create(@Body() createEmailSendDto: CreateEmailSendDto) {
-    return this.emailSendService.sendEmail(createEmailSendDto);
-  }  
+  // @Post()
+  // create(@Body() createEmailSendDto: CreateEmailSendDto) {
+  //   return this.emailSendService.sendEmail(createEmailSendDto);
+  // }  
 }

@@ -14,6 +14,7 @@ import { RabbitModule } from './rabbit/rabbit.module';
 import { PushNotificationModule } from './push-notification/push-notification.module';
 import { DeviceRegisterModule } from './device-register/device-register.module';
 import { BucketModule } from './bucket/bucket.module';
+import { TaskModule } from './task/task.module';
 
 
 @Module({
@@ -43,7 +44,8 @@ import { BucketModule } from './bucket/bucket.module';
   RabbitModule,
   PushNotificationModule,
   DeviceRegisterModule,
-  BucketModule
+  BucketModule,
+  TaskModule
   ],
   controllers: [AppController],
   providers: [AppService,

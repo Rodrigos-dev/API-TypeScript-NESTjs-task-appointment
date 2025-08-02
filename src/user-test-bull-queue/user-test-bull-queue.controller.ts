@@ -8,9 +8,9 @@ import { CreateUserDto } from 'src/user/dto/create-user.dto';
 export class UserTestBullQueueController {
   constructor(private readonly userTestBullQueueService: UserTestBullQueueService) {}
 
-  @Post()
-  create(@Body() createUserDto: CreateUserTestBullQueueDto) {
-    return this.userTestBullQueueService.addUserByQueue(createUserDto);
-  }
+  // @Post()
+  // create(@Body() createUserDto: CreateUserTestBullQueueDto) {
+  //   return this.userTestBullQueueService.addUserByQueue(createUserDto);
+  // }
   
 }
