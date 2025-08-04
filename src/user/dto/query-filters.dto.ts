@@ -2,15 +2,16 @@ import { ApiProperty } from "@nestjs/swagger";
 import { IsIn, IsOptional } from "class-validator";
 
 export class UserFindAllDto {
-    @ApiProperty()
+    @ApiProperty({ required: false })
     @IsOptional()
     page?: number;
 
-    @ApiProperty()
+    @ApiProperty({ required: false })
     @IsOptional()
     take?: number;
 
     @ApiProperty({
+        required: false,
         enum: ['ASC', 'DESC'],
     })
     @IsOptional()
@@ -20,27 +21,28 @@ export class UserFindAllDto {
 
 
 export class UserFindAllByQueryDto {
-    @ApiProperty()
+    @ApiProperty({ required: false })
     @IsOptional()
     userId?: number
 
-    @ApiProperty()
+    @ApiProperty({ required: false })
     @IsOptional()
     email?: string
 
-    @ApiProperty()
+    @ApiProperty({ required: false })
     @IsOptional()
     name?: string
 
-    @ApiProperty()
+    @ApiProperty({ required: false })
     @IsOptional()
     page?: number
 
-    @ApiProperty()
+    @ApiProperty({ required: false })
     @IsOptional()
     take?: number
 
     @ApiProperty({
+        required: false,
         enum: ['ASC', 'DESC'],
     })
     @IsOptional()

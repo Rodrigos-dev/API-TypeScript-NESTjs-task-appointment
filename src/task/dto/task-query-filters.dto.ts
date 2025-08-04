@@ -4,40 +4,43 @@ import { PeriodTasksEnum, StatusTaskEnum } from "src/commom/enums/task.enums";
 
 export class TaskFindAllDto {
 
-    @ApiProperty()
+    @ApiProperty({ required: false })
     @IsOptional()
-    userOwnerId: number;    
+    userOwnerId?: number;    
 
-    @ApiProperty()
-    @IsEnum(StatusTaskEnum, { message: 'Status inválido' })    
-    status: StatusTaskEnum;  
+    @ApiProperty({ required: false, enum: StatusTaskEnum })
+    @IsEnum(StatusTaskEnum, { message: 'Status inválido' }) 
+    @IsOptional()   
+    status?: StatusTaskEnum;  
     
     @ApiProperty({
+        required: false,
         type: String,
         format: 'date', // só a data
         example: '2025-08-02',
         description: 'Data da tarefa no formato YYYY-MM-DD',
     })
     @IsOptional()
-    dateEvent: string;    
+    dateEvent?: string;    
 
-    @ApiProperty()
+    @ApiProperty({ required: false })
     @IsOptional()
-    title: string;
+    title?: string;
 
-    @ApiProperty()
+    @ApiProperty({ required: false })
     @IsOptional()
-    description: string;
+    description?: string;
 
-    @ApiProperty()
+    @ApiProperty({ required: false })
     @IsOptional()
     page?: number;
 
-    @ApiProperty()
+    @ApiProperty({ required: false })
     @IsOptional()
     take?: number;
 
     @ApiProperty({
+        required: false,
         enum: ['ASC', 'DESC'],
     })
     @IsOptional()
@@ -47,29 +50,30 @@ export class TaskFindAllDto {
 
 export class TasksPeriodFindDto {
 
-    @ApiProperty()
+    @ApiProperty({ required: false })
     @IsOptional()
     userOwnerId?: number;    
 
-    @ApiProperty()
+    @ApiProperty({ required: false, enum: StatusTaskEnum })
     @IsOptional()
     @IsEnum(StatusTaskEnum, { message: 'Status inválido' })    
     status?: StatusTaskEnum; 
     
-    @ApiProperty()
+    @ApiProperty({ enum: PeriodTasksEnum })
     @IsEnum(PeriodTasksEnum, { message: 'Período inválido' })
     @IsNotEmpty({ message: 'O periodo é obrigatório.' })
     period: PeriodTasksEnum;    
 
-    @ApiProperty()
+    @ApiProperty({ required: false })
     @IsOptional()
     page?: number;
 
-    @ApiProperty()
+    @ApiProperty({ required: false })
     @IsOptional()
     take?: number;
 
     @ApiProperty({
+        required: false,
         enum: ['ASC', 'DESC'],
     })
     @IsOptional()
