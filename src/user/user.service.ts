@@ -40,7 +40,6 @@ export class UserService {
     try {
 
       if (createUserDto.password.toLowerCase() !== createUserDto.confirmPassword.toLowerCase()) {
-        loggers.loggerMessage('error', `Password e confirmPassword não podem ser diferentes!`)
         throw new HttpException('erro no body enviado', HttpStatus.BAD_REQUEST);
       }
 
@@ -89,6 +88,7 @@ export class UserService {
       return result
 
     } catch (err) {
+      loggers.loggerMessage('error', err);
       return exceptions.exceptionsReturn(err)
     }
   }
@@ -147,13 +147,13 @@ export class UserService {
       const user = await this.userRepository.findOne({ where: { email: email } });
 
       if (!user) {
-        loggers.loggerMessage('error', `email invalido, usuário não encontrado!`)
         throw new HttpException(`usuário não encontrado!`, HttpStatus.NOT_FOUND);
       }
 
       return user
 
     } catch (err) {
+      loggers.loggerMessage('error', err)
       return exceptions.exceptionsReturn(err)
     }
   }
@@ -226,7 +226,6 @@ export class UserService {
       if (updateUserDto.avatar && updateUserDto.avatar.base64) {
 
         if (updateUserDto.avatar.base64 === '') {
-          loggers.loggerMessage('error', `Base 64 não pode ser ''`);
           throw new HttpException(`Base 64 não pode ser ''`, HttpStatus.BAD_REQUEST)
         }
 
@@ -266,7 +265,6 @@ export class UserService {
 
 
         } else {
-          loggers.loggerMessage('error', 'A apenas arquivos com extensão jpeg');
           throw new HttpException(`A apenas arquivos com extensão jpeg `, HttpStatus.BAD_REQUEST)
         }
       }
@@ -287,7 +285,6 @@ export class UserService {
       const userExists = await this.findOneByEmail(data.email)
 
       if (!userExists) {
-        loggers.loggerMessage('error', `user email:${data.email} don't found!`)
         throw new HttpException(`User don't found`, HttpStatus.BAD_REQUEST);
       }
 
@@ -336,7 +333,6 @@ export class UserService {
           return { message: `Em alguns instantes sera enviado um Email para ${emailToSendMessageEmail} com o código para realizar a atualização de sua nova senha, verifique sua caixa de span ou lixo! Caso não encontre tente novamente ou entre em contato com o suporte.` }
         }
       } else {
-        loggers.loggerMessage('error', `algum erro ao adicionar na fila de processamento!`)
         throw new HttpException(`algum erro ao adicionar na fila de processamento`, HttpStatus.BAD_REQUEST);
       }
 
@@ -355,7 +351,6 @@ export class UserService {
 
       if (codeForgetPassword) {
         if (!codeForgetPassword) {
-          loggers.loggerMessage('error', `codeForgetPassword não enviado!`)
           throw new HttpException(`Body com dados inválidos`, HttpStatus.BAD_REQUEST);
         }
 
@@ -375,7 +370,6 @@ export class UserService {
       } else {
 
         if (!data.oldPassword) {
-          loggers.loggerMessage('error', 'oldPassword deve ser enviado')
           throw new HttpException('oldPassword deve ser enviado', HttpStatus.BAD_REQUEST);
         }
 
@@ -391,7 +385,6 @@ export class UserService {
           if (oldPasswordSendedIsEqualRegistered) {
             passwordUpdate = { password: bcrypt.hashSync(data.password, 8), codeForgetPassword: null }
           } else {
-            loggers.loggerMessage('error', 'oldPassword enviado não é igual ao registrado')
             throw new HttpException('oldPassword enviado não é igual ao registrado', HttpStatus.BAD_REQUEST);
           }
 
@@ -401,19 +394,16 @@ export class UserService {
       }
 
       if (!userExists) {
-        loggers.loggerMessage('error', messageUserNotFound)
         throw new HttpException(messageUserNotFound, HttpStatus.BAD_REQUEST);
       }
 
       if (userExists.email.toLowerCase() !== data.email.toLowerCase()) {
-        loggers.loggerMessage('error', `Email enviado no body não é igual o cadastrado`)
         throw new HttpException(`Email enviado no body não é igual o cadastrado`, HttpStatus.BAD_REQUEST);
       }
 
       if (passwordUpdate) {
         return await this.userRepository.save({ ...passwordUpdate, id: Number(userExists.id), })
       } else {
-        loggers.loggerMessage('error', `Erro ao gerar o passord criptografado`)
         throw new HttpException(`Erro ao gerar o passord criptografado`, HttpStatus.BAD_REQUEST);
       }
 
@@ -446,14 +436,12 @@ export class UserService {
     try {
 
       if (userReq.sub !== userId && userReq.role !== RoleEnum.ADMIN) {
-        loggers.loggerMessage('error', 'Você não tem permissão para essa ação')
         throw new HttpException(`Você não tem permissão para essa ação`, HttpStatus.FORBIDDEN)
       }
 
       const userExists = await this.userRepository.findOne({ where: { id: userId } })
 
       if (!userExists || !userExists.avatar.urlAvatar) {
-        loggers.loggerMessage('error', 'Usuário não encontrado ou não tem uma url avatar')
         throw new HttpException(`Usuário não encontrado ou não tem uma url avatar`, HttpStatus.BAD_REQUEST)
       }
 

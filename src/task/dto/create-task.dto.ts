@@ -5,7 +5,7 @@ export class CreateTaskDto {
 
     @ApiProperty()
     @IsNotEmpty({ message: 'Usuario que está criando a tarefa deve ser enviado.' })
-    createdByUserId: number;
+    userOwnerId: number;
 
     @ApiProperty({
         type: String,

@@ -15,7 +15,7 @@ export class Task {
     status: StatusTaskEnum;
 
     @Column()
-    createdByUserId: number;
+    userOwnerId: number;
 
     @Column({ type: 'date' })
     dateEvent: string;

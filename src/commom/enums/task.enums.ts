@@ -1,5 +1,12 @@
 export enum StatusTaskEnum {
     PENDING = 'pending',
     CANCELLED = 'cancelled',
-    DONE = 'done'
+    FINISHED = 'finished'
+}
+
+export enum PeriodTasksEnum {
+    day = 'day',
+    week = 'week',
+    month = 'month',
+    year = 'year'    
 }

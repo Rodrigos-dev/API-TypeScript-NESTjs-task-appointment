@@ -6,7 +6,7 @@ import exceptions from 'src/commom/utils/exceptions';
 import loggers from 'src/commom/utils/loggers';
 import { CurrentUserDto } from './dto/current-user-dto';
 import { User } from 'src/user/entities/user.entity';
-import { AuthDto } from './dto/auth.dto';
+
 
 @Injectable()
 export class AuthService {
@@ -38,7 +38,7 @@ export class AuthService {
 
     }
 
-    async login(userPayload: AuthDto, refresh?: boolean) {
+    async login(userPayload: User, refresh?: boolean) {
 
         let user = null
 
