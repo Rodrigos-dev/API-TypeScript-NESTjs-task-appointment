@@ -14,10 +14,9 @@ export class AuthService {
 
     async validarUsuario(email: string, senha: string): Promise<any> {
         try {
-            const usuario = await this.userService.findOneByEmail(email).catch((err) => { });
+            const usuario = await this.userService.findOneByEmail(email)
 
-            if (!usuario) {
-                loggers.loggerMessage('error', 'Email inválido, usuário não encontrado!')
+            if (!usuario) {                
                 throw new HttpException(`Email ou senha inválidos!`, HttpStatus.BAD_REQUEST);
             }
 
@@ -27,13 +26,12 @@ export class AuthService {
 
                 return result;
 
-            } else {
-                loggers.loggerMessage('error', `Senha inválida!`)
+            } else {                
                 throw new HttpException(`Email ou senha inválidos!`, HttpStatus.BAD_REQUEST);
             }
 
         } catch (err) {
-            return exceptions.exceptionsReturn(err)
+            return exceptions.exceptionsReturn(err)           
         }
 
     }
@@ -47,7 +45,7 @@ export class AuthService {
         }
 
         if(refresh === true){
-            user = await this.userService.findOneByEmail(userPayload.email).catch((err) => { });
+            user = await this.userService.findOneByEmail(userPayload.email);
         }else{
             user = userPayload
         }
