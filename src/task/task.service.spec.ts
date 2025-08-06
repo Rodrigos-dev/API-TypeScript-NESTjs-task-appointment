@@ -3,13 +3,13 @@ import { TaskService } from './task.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Task } from './entities/task.entity';
 import { User } from 'src/user/entities/user.entity';
+import { mockTaskRepository } from 'src/__mocks__/task.mock';
+import { mockUser, mockUserRepository } from 'src/__mocks__/user.mock';
 import { DeleteResult, Repository } from 'typeorm';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { PeriodTasksEnum, StatusTaskEnum } from 'src/commom/enums/task.enums';
 import * as dateFns from 'date-fns';
-import { mockTaskRepository } from 'src/__mocks__/task.mock';
-import { mockUser, mockUserRepository } from 'src/__mocks__/user.mock';
 import { TaskFindAllDto, TasksPeriodFindDto } from './dto/task-query-filters.dto';
 import { RoleEnum } from 'src/commom/enums/user-enums';
 import { validate } from 'class-validator';
@@ -42,11 +42,11 @@ describe('TaskService', () => {
         TaskService,
         {
           provide: getRepositoryToken(Task),
-          useValue: mockTaskRepository, // ✅ Aqui já usa o que veio do import
+          useValue: mockTaskRepository,
         },
         {
           provide: getRepositoryToken(User),
-          useValue: mockUserRepository, // ✅ E aqui também
+          useValue: mockUserRepository,
         },
       ],
     }).compile();
@@ -58,8 +58,205 @@ describe('TaskService', () => {
 
   it('deve estar definido', () => {
     expect(service).toBeDefined();
-  });  
+  });
 });
+
+// //############################ create #############################################//
+
+describe('TaskService - create', () => {
+  let service: TaskService;
+  let taskRepo: jest.Mocked<Repository<Task>>;
+  let userRepo: jest.Mocked<Repository<User>>;
+
+  const createTaskDto: CreateTaskDto = {
+    userOwnerId: 1,
+    dateEvent: new Date().toISOString().split('T')[0],
+    startTime: '09:00',
+    endTime: '10:00',
+    title: 'Nova tarefa',
+    description: 'Descrição da tarefa',
+  };
+
+  const userReq = {
+    sub: 1,
+    role: 'user',
+    username: 'Usuário Mockado',
+    email: 'mock@email.com',
+  };
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        TaskService,
+        { provide: getRepositoryToken(Task), useFactory: mockTaskRepository },
+        { provide: getRepositoryToken(User), useFactory: mockUserRepository },
+      ],
+    }).compile();
+
+    service = module.get<TaskService>(TaskService);
+    taskRepo = module.get(getRepositoryToken(Task));
+    userRepo = module.get(getRepositoryToken(User));
+  });
+
+  it('deve criar a tarefa com sucesso', async () => {
+    jest.spyOn(userRepo, 'findOne').mockResolvedValue(mockUser);
+    jest.spyOn(service, 'verifyDateAndHourFree').mockResolvedValue(true);
+    jest.spyOn(taskRepo, 'save').mockResolvedValue({
+      id: 1,
+      ...createTaskDto,
+      status: StatusTaskEnum.PENDING,
+      user: mockUser,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      deletedAt: null,
+    });
+
+    const result = await service.create(createTaskDto, userReq);
+
+    expect(result).toHaveProperty('id');
+    expect(taskRepo.save).toHaveBeenCalledWith(expect.objectContaining({
+      userOwnerId: 1,
+      title: 'Nova tarefa',
+    }));
+  });
+
+  it('deve lançar erro se a data for menor que hoje', async () => {
+    const dto = { ...createTaskDto, dateEvent: '2000-01-01' };
+
+    // forçar o mock para esse teste
+    (dateFns.isBefore as jest.Mock).mockReturnValue(true);
+
+    await expect(service.create(dto, userReq)).rejects.toThrow(HttpException);
+    await expect(service.create(dto, userReq)).rejects.toThrow('Data não pode ser menor que a data de hoje!');
+  });
+
+  it('deve lançar erro se userOwnerId for diferente do user logado', async () => {
+    const dto = { ...createTaskDto, userOwnerId: 999 };
+
+    (dateFns.isBefore as jest.Mock).mockReturnValue(false);
+
+    await expect(service.create(dto, userReq)).rejects.toThrow(HttpException);
+    await expect(service.create(dto, userReq)).rejects.toThrow('Usuário logado deve ser o mesmo que está criando a tarefa!');
+  });
+
+  it('deve lançar erro se o usuário não for encontrado', async () => {
+    jest.spyOn(userRepo, 'findOne').mockResolvedValue(null);
+
+    await expect(service.create(createTaskDto, userReq)).rejects.toThrow(HttpException);
+    await expect(service.create(createTaskDto, userReq)).rejects.toThrow('Usuário não encontrado!');
+  });
+
+  it('deve lançar erro se já existir tarefa no mesmo horário', async () => {
+    jest.spyOn(userRepo, 'findOne').mockResolvedValue(mockUser);
+    jest.spyOn(service, 'verifyDateAndHourFree').mockResolvedValue(undefined);
+
+    await expect(service.create(createTaskDto, userReq)).rejects.toThrow(HttpException);
+    await expect(service.create(createTaskDto, userReq)).rejects.toThrow('Já existe uma tarefa para essa data e hora!');
+  });
+});
+
+//###################### verifyDateAndHourFree ############################################//
+
+describe('TaskService - verifyDateAndHourFree', () => {
+  let service: TaskService;
+  let taskRepo: jest.Mocked<Repository<Task>>;
+
+  const taskBody: Task = {
+    id: 1,
+    userOwnerId: 1,
+    dateEvent: '2025-08-05',
+    startTime: '09:00',
+    endTime: '10:00',
+    title: 'Tarefa teste',
+    description: 'Descrição da tarefa',
+    status: StatusTaskEnum.PENDING,
+    user: { id: 1, name: 'John Doe' } as User,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    deletedAt: null,
+  };
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        TaskService,
+        {
+          provide: getRepositoryToken(Task),
+          useValue: {
+            find: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(User),
+          useValue: {
+            find: jest.fn(),
+          },
+        },
+      ],
+    }).compile();
+
+    service = module.get<TaskService>(TaskService);
+    taskRepo = module.get(getRepositoryToken(Task));
+  });
+
+  it('deve retornar true se não existir conflito de horário', async () => {
+    taskRepo.find.mockResolvedValue([]);
+    const result = await service.verifyDateAndHourFree('2025-08-05', '11:00', '12:00', 1);
+    expect(result).toBe(true);
+  });
+
+  it('deve lançar erro se já existir tarefa exatamente no mesmo horário', async () => {
+    taskRepo.find.mockResolvedValue([taskBody]);
+    await expect(service.verifyDateAndHourFree('2025-08-05', '09:00', '10:00', 1))
+      .rejects.toThrow(HttpException);
+  });
+
+  it('deve lançar erro se startTime estiver dentro do intervalo de outra tarefa', async () => {
+    taskRepo.find.mockResolvedValue([taskBody]);
+    await expect(service.verifyDateAndHourFree('2025-08-05', '09:30', '10:30', 1))
+      .rejects.toThrow(HttpException);
+  });
+
+  it('deve lançar erro se endTime estiver dentro do intervalo de outra tarefa', async () => {
+    taskRepo.find.mockResolvedValue([taskBody]);
+    await expect(service.verifyDateAndHourFree('2025-08-05', '08:30', '09:30', 1))
+      .rejects.toThrow(HttpException);
+  });
+
+  it('deve lançar erro se o novo horário estiver completamente dentro de outro', async () => {
+    taskRepo.find.mockResolvedValue([taskBody]);
+    await expect(service.verifyDateAndHourFree('2025-08-05', '09:15', '09:45', 1))
+      .rejects.toThrow(HttpException);
+  });
+
+  it('deve lançar erro se o novo horário englobar completamente outro', async () => {
+    taskRepo.find.mockResolvedValue([taskBody]);
+    await expect(service.verifyDateAndHourFree('2025-08-05', '08:00', '11:00', 1))
+      .rejects.toThrow(HttpException);
+  });
+
+  it('deve lançar erro se endTime for menor ou igual ao startTime', async () => {
+    taskRepo.find.mockResolvedValue([]);
+    await expect(service.verifyDateAndHourFree('2025-08-05', '10:00', '09:00', 1))
+      .rejects.toThrow('Horário de término deve ser maior que o horário de início');
+
+    await expect(service.verifyDateAndHourFree('2025-08-05', '10:00', '10:00', 1))
+      .rejects.toThrow('Horário de término deve ser maior que o horário de início');
+  });
+
+  it('deve retornar true se novo horário for antes de tarefas existentes', async () => {
+    taskRepo.find.mockResolvedValue([taskBody]);
+    const result = await service.verifyDateAndHourFree('2025-08-05', '07:00', '08:00', 1);
+    expect(result).toBe(true);
+  });
+
+  it('deve retornar true se novo horário for depois de tarefas existentes', async () => {
+    taskRepo.find.mockResolvedValue([taskBody]);
+    const result = await service.verifyDateAndHourFree('2025-08-05', '10:30', '11:30', 1);
+    expect(result).toBe(true);
+  });
+
+})
 
 //##################### find all ################################################
 
@@ -128,7 +325,7 @@ describe('TaskService - findAll', () => {
       },
     ];
 
-    // Simula retorno do getManyAndCount
+    // Simula retorno do getManyAndCount  
     mockQueryBuilder.getManyAndCount.mockResolvedValue([mockTasks, mockTasks.length]);
 
     // Query sem filtros adicionais, user comum solicitando suas próprias tasks
@@ -276,6 +473,48 @@ describe('TaskService - findAll', () => {
 
     expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('task.status = :status', { status: 'pending' });
     expect(result.tasks).toEqual([]);
+  });
+
+  it('deve aplicar filtro de dateEvent corretamente', async () => {
+    const mockTasks = [
+      {
+        id: 1,
+        userOwnerId: 1,
+        dateEvent: '2025-08-05',
+        startTime: '09:00',
+        endTime: '10:00',
+        title: 'Tarefa 1',
+        description: 'Descrição 1',
+        status: StatusTaskEnum.PENDING,
+      },
+    ];
+
+    mockQueryBuilder.getManyAndCount.mockResolvedValue([mockTasks, mockTasks.length]);
+
+    const queryDto: TaskFindAllDto = {
+      userOwnerId: 1,
+      dateEvent: '2025-08-05',  // <-- aqui adiciona o dateEvent para ativar o if
+      page: 1,
+      take: 10,
+    };
+
+    const userReq = {
+      sub: 1,
+      role: RoleEnum.USER,
+      username: 'user1',
+      email: 'user1@example.com',
+    };
+
+    const result = await service.findAll(queryDto, userReq) as {
+      total: number;
+      currentPage: number;
+      totalPages: number;
+      tasks: Task[];
+    };
+
+    expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('task.dateEvent = :dateEvent', { dateEvent: queryDto.dateEvent });
+    expect(result.tasks).toEqual(mockTasks);
+    expect(result.total).toBe(mockTasks.length);
   });
 });
 
@@ -584,194 +823,52 @@ describe('TaskService - findTasksByPeriod', () => {
       'Período inválido',
     );
   });
-});
 
-//###################### verifyDateAndHourFree ############################################//
+  // Test para entrar no if (!userOwnerId)
+  it('deve lançar erro se userOwnerId não for enviado para usuário comum', async () => {
+    const query: TasksPeriodFindDto = {
+      // userOwnerId ausente
+      period: PeriodTasksEnum.DAY,
+      page: 1,
+      take: 10,
+      orderBy: 'DESC',
+    };
 
-describe('TaskService - verifyDateAndHourFree', () => {
-  let service: TaskService;
-  let taskRepo: jest.Mocked<Repository<Task>>;
+    const userReq = {
+      sub: 1,
+      role: RoleEnum.USER,
+      username: '',
+      email: '',
+    };
 
-  const taskBody: Task = {
-    id: 1,
-    userOwnerId: 1,
-    dateEvent: '2025-08-05',
-    startTime: '09:00',
-    endTime: '10:00',
-    title: 'Tarefa teste',
-    description: 'Descrição da tarefa',
-    status: StatusTaskEnum.PENDING,
-    user: { id: 1, name: 'John Doe' } as User,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    deletedAt: null,
-  };
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        TaskService,
-        {
-          provide: getRepositoryToken(Task),
-          useValue: {
-            find: jest.fn(),
-          },
-        },
-        {
-          provide: getRepositoryToken(User),
-          useValue: {
-            find: jest.fn(),
-          },
-        },
-      ],
-    }).compile();
-
-    service = module.get<TaskService>(TaskService);
-    taskRepo = module.get(getRepositoryToken(Task));
-  });
-
-  it('deve retornar true se não existir conflito de horário', async () => {
-    taskRepo.find.mockResolvedValue([]);
-    const result = await service.verifyDateAndHourFree('2025-08-05', '11:00', '12:00', 1);
-    expect(result).toBe(true);
-  });
-
-  it('deve lançar erro se já existir tarefa exatamente no mesmo horário', async () => {
-    taskRepo.find.mockResolvedValue([taskBody]);
-    await expect(service.verifyDateAndHourFree('2025-08-05', '09:00', '10:00', 1))
-      .rejects.toThrow(HttpException);
-  });
-
-  it('deve lançar erro se startTime estiver dentro do intervalo de outra tarefa', async () => {
-    taskRepo.find.mockResolvedValue([taskBody]);
-    await expect(service.verifyDateAndHourFree('2025-08-05', '09:30', '10:30', 1))
-      .rejects.toThrow(HttpException);
-  });
-
-  it('deve lançar erro se endTime estiver dentro do intervalo de outra tarefa', async () => {
-    taskRepo.find.mockResolvedValue([taskBody]);
-    await expect(service.verifyDateAndHourFree('2025-08-05', '08:30', '09:30', 1))
-      .rejects.toThrow(HttpException);
-  });
-
-  it('deve lançar erro se o novo horário estiver completamente dentro de outro', async () => {
-    taskRepo.find.mockResolvedValue([taskBody]);
-    await expect(service.verifyDateAndHourFree('2025-08-05', '09:15', '09:45', 1))
-      .rejects.toThrow(HttpException);
-  });
-
-  it('deve lançar erro se o novo horário englobar completamente outro', async () => {
-    taskRepo.find.mockResolvedValue([taskBody]);
-    await expect(service.verifyDateAndHourFree('2025-08-05', '08:00', '11:00', 1))
-      .rejects.toThrow(HttpException);
-  });
-
-  it('deve lançar erro se endTime for menor ou igual ao startTime', async () => {
-    taskRepo.find.mockResolvedValue([]);
-    await expect(service.verifyDateAndHourFree('2025-08-05', '10:00', '09:00', 1))
-      .rejects.toThrow('Horário de término deve ser maior que o horário de início');
-
-    await expect(service.verifyDateAndHourFree('2025-08-05', '10:00', '10:00', 1))
-      .rejects.toThrow('Horário de término deve ser maior que o horário de início');
-  });
-
-  it('deve retornar true se novo horário for antes de tarefas existentes', async () => {
-    taskRepo.find.mockResolvedValue([taskBody]);
-    const result = await service.verifyDateAndHourFree('2025-08-05', '07:00', '08:00', 1);
-    expect(result).toBe(true);
-  });
-
-  it('deve retornar true se novo horário for depois de tarefas existentes', async () => {
-    taskRepo.find.mockResolvedValue([taskBody]);
-    const result = await service.verifyDateAndHourFree('2025-08-05', '10:30', '11:30', 1);
-    expect(result).toBe(true);
-  });
-
-})
-
-// //############################ create #############################################//
-
-describe('TaskService - create', () => {
-  let service: TaskService;
-  let taskRepo: jest.Mocked<Repository<Task>>;
-  let userRepo: jest.Mocked<Repository<User>>;
-
-  const createTaskDto: CreateTaskDto = {
-    userOwnerId: 1,
-    dateEvent: new Date().toISOString().split('T')[0],
-    startTime: '09:00',
-    endTime: '10:00',
-    title: 'Nova tarefa',
-    description: 'Descrição da tarefa',
-  };
-
-  const userReq = {
-    sub: 1,
-    role: 'user',
-    username: 'Usuário Mockado',
-    email: 'mock@email.com',
-  };
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        TaskService,
-        { provide: getRepositoryToken(Task), useFactory: mockTaskRepository },
-        { provide: getRepositoryToken(User), useFactory: mockUserRepository },
-      ],
-    }).compile();
-
-    service = module.get<TaskService>(TaskService);
-    taskRepo = module.get(getRepositoryToken(Task));
-    userRepo = module.get(getRepositoryToken(User));
-  });
-
-  it('deve criar a tarefa com sucesso', async () => {
-    jest.spyOn(userRepo, 'findOne').mockResolvedValue(mockUser);
-    jest.spyOn(service, 'verifyDateAndHourFree').mockResolvedValue(true);
-    jest.spyOn(taskRepo, 'save').mockResolvedValue({
-      id: 1,
-      ...createTaskDto,
-      status: StatusTaskEnum.PENDING,
-      user: mockUser,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      deletedAt: null,
-    });
-
-    const result = await service.create(createTaskDto, userReq);
-
-    expect(result).toHaveProperty('id');
-    expect(taskRepo.save).toHaveBeenCalledWith(expect.objectContaining({
-      userOwnerId: 1,
-      title: 'Nova tarefa',
-    }));
-  });
-
-  it('deve lançar erro se a data for menor que hoje', async () => {
-    const dto = { ...createTaskDto, dateEvent: '2000-01-01' };
-    await expect(service.create(dto, userReq)).rejects.toThrow(HttpException);
-  });
-
-  it('deve lançar erro se userOwnerId for diferente do user logado', async () => {
-    const dto = { ...createTaskDto, userOwnerId: 2 };
-    await expect(service.create(dto, userReq)).rejects.toThrow(HttpException);
-  });
-
-  it('deve lançar erro se o usuário não for encontrado', async () => {
-    jest.spyOn(userRepo, 'findOne').mockResolvedValue(null);
-    await expect(service.create(createTaskDto, userReq)).rejects.toThrow(HttpException);
-  });
-
-  it('deve lançar erro se já existir tarefa no mesmo horário', async () => {
-    jest.spyOn(userRepo, 'findOne').mockResolvedValue(mockUser);
-    jest.spyOn(service, 'verifyDateAndHourFree').mockRejectedValue(
-      new HttpException('Já existe uma tarefa para essa data e hora!', HttpStatus.NOT_FOUND),
+    await expect(service.findTasksByPeriod(query, userReq)).rejects.toThrow(
+      'Deve ser enviado o id do usuário a buscar as tarefas',
     );
+  });
 
-    await expect(service.create(createTaskDto, userReq)).rejects.toThrow(HttpException);
-  })
-})
+  it('deve lançar erro se o campo "period" não for enviado', async () => {
+    const query: TasksPeriodFindDto = {
+      userOwnerId: 1,
+      period: PeriodTasksEnum.YEAR,
+      page: 1,
+      take: 10,
+      orderBy: 'DESC',
+    };
+
+    delete query.period
+
+    const userReq = {
+      sub: 1,
+      role: RoleEnum.USER,
+      username: '',
+      email: '',
+    };
+
+    await expect(service.findTasksByPeriod(query, userReq)).rejects.toThrow(
+      'O campo "period" é obrigatório',
+    );
+  });
+});
 
 //############################### Update Task ########################################//
 
@@ -853,7 +950,7 @@ describe('TaskService - update', () => {
       expect(taskRepository.save).toHaveBeenCalledWith({ ...updateDto, id: mockTask.id });
       expect((result as Task).title).toBe(updateDto.title);
     } catch (err) {
-      console.log('ERRO NO TESTE UPDATE: - task.service.spec.ts:856', err);
+      console.log('ERRO NO TESTE UPDATE: - task.service.spec.ts:953', err);
       throw err; // relança para falhar o teste como esperado
     }
   });

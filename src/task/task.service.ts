@@ -93,7 +93,7 @@ export class TaskService {
     userOwnerId: number = null
   ) {
     try {
-      
+
       const startDate = new Date(`${dateEvent} ${startTime}`);
       const endDate = new Date(`${dateEvent} ${endTime}`);
 
@@ -119,9 +119,7 @@ export class TaskService {
       }
 
       const scheduleEvents = await this.taskRepository.find({ where });
-      console.log(scheduleEvents, dateEvent, startTime, endTime, userOwnerId, 'verify - task.service.ts:122')
-      // Verificar conflitos
-      
+
       for await (const scheduleEvent of scheduleEvents) {
         const start = new Date(`${scheduleEvent.dateEvent} ${scheduleEvent.startTime}`);
         const end = new Date(`${scheduleEvent.dateEvent} ${scheduleEvent.endTime}`);
@@ -333,7 +331,7 @@ export class TaskService {
   }
 
   async update(taskId: number, updateTaskDto: UpdateTaskDto, userReq: CurrentUserDto) {
-    try { 
+    try {
 
       const taskExists = await this.taskRepository.findOne({ where: { id: taskId } })
 
@@ -351,31 +349,27 @@ export class TaskService {
 
       if (Number(userReq.sub) !== Number(taskExists.userOwnerId) && userReq.role !== RoleEnum.ADMIN) {
         throw new HttpException(`Somente o proprietario da tarefa ou um administrador pode remover.`, HttpStatus.FORBIDDEN)
-      }     
+      }
 
 
       if (updateTaskDto.dateEvent || updateTaskDto.startTime || updateTaskDto.endTime) {
 
-        if (updateTaskDto.dateEvent && updateTaskDto.startTime && updateTaskDto.endTime) {          
+        if (updateTaskDto.dateEvent && updateTaskDto.startTime && updateTaskDto.endTime) {
 
           const eventDate = startOfDay(parseISO(updateTaskDto.dateEvent));
-          const today = startOfDay(new Date());          
+          const today = startOfDay(new Date());
 
           if (isBefore(eventDate, today)) {
-            console.log(eventDate, today, 'before 2 - task.service.ts:365')
+            console.log(eventDate, today, 'before 2 - task.service.ts:363')
             throw new HttpException(`Data não pode ser menor que a data de hoje!`, HttpStatus.BAD_REQUEST);
-          }          
+          }
 
           const taskDataHourExists = await this.verifyDateAndHourFree(
             updateTaskDto.dateEvent,
             updateTaskDto.startTime,
             updateTaskDto.endTime,
             taskExists.userOwnerId
-          );         
-
-          if (!taskDataHourExists) {
-            throw new HttpException(`Já existe uma tarefa para essa data e hora!`, HttpStatus.CONFLICT);
-          }
+          );
 
         } else {
           throw new HttpException(`Atualizar data hora inicial ou hora final deve enviar as 3 propriedades`, HttpStatus.BAD_REQUEST)
@@ -387,7 +381,7 @@ export class TaskService {
       return taskUpdate
 
     } catch (err) {
-      loggers.loggerMessage('error', err);      
+      loggers.loggerMessage('error', err);
       return exceptions.exceptionsReturn(err)
     }
   }

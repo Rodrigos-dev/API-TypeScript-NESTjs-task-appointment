@@ -100,9 +100,7 @@ export class UserService {
 
       if (!page) page = 1;
       if (!take) take = 10;
-      if (!orderBy) orderBy = 'DESC';
-
-      const userDidRequest = req.user
+      if (!orderBy) orderBy = 'DESC';      
 
       const [result, total] = await this.userRepository.findAndCount({
         skip: (page - 1) * take, // Pula registros com base na página
@@ -223,7 +221,7 @@ export class UserService {
         throw new HttpException(`Você não tem permissão para alterar a Permissão, refaça o login e tente novamente`, HttpStatus.FORBIDDEN)
       }
 
-      if (updateUserDto.avatar && updateUserDto.avatar.base64) {
+      if (updateUserDto.avatar) {
 
         if (updateUserDto.avatar.base64 === '') {
           throw new HttpException(`Base 64 não pode ser ''`, HttpStatus.BAD_REQUEST)
@@ -464,6 +462,7 @@ export class UserService {
 
     } catch (err) {
       loggers.loggerMessage('error', err)
+      return exceptions.exceptionsReturn(err)
     }
   }
 }
