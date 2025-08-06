@@ -10,7 +10,7 @@ export class UpdateTaskDto {
     })
     @IsOptional()
     @IsEnum(StatusTaskEnum, { message: 'Valor inválido para status da tarefa' })
-    status: StatusTaskEnum;
+    status?: StatusTaskEnum;
 
     @ApiProperty({
         type: String,
@@ -20,7 +20,7 @@ export class UpdateTaskDto {
     })
     @IsOptional()
     @IsDateString({}, { message: 'A data deve estar no formato ISO 8601 (YYYY-MM-DD).' })
-    dateEvent: string;
+    dateEvent?: string;
 
     @ApiProperty({
         type: String,
@@ -29,7 +29,7 @@ export class UpdateTaskDto {
         description: 'Hora de início no formato HH:mm',
     })
     @IsOptional()
-    startTime: string;
+    startTime?: string;
 
     @ApiProperty({
         type: String,
@@ -38,13 +38,13 @@ export class UpdateTaskDto {
         description: 'Hora de término no formato HH:mm',
     })
     @IsOptional()
-    endTime: string;
+    endTime?: string;
 
     @ApiProperty()
     @IsOptional()
-    title: string;
+    title?: string;
 
     @ApiProperty()
     @IsOptional()
-    description: string;
+    description?: string;
 }

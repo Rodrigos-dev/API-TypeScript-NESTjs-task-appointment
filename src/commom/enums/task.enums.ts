@@ -5,8 +5,8 @@ export enum StatusTaskEnum {
 }
 
 export enum PeriodTasksEnum {
-    day = 'day',
-    week = 'week',
-    month = 'month',
-    year = 'year'    
+    DAY = 'day',
+    WEEK = 'week',
+    MONTH = 'month',
+    YEAR = 'year'    
 }

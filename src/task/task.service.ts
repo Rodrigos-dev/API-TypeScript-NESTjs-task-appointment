@@ -1,7 +1,20 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { addMinutes, isBefore, parseISO, startOfDay, subMinutes, format, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
+import {
+  addMinutes,
+  isBefore,
+  parseISO,
+  startOfDay,
+  subMinutes,
+  endOfDay,
+  startOfWeek,
+  endOfWeek,
+  startOfMonth,
+  endOfMonth,
+  startOfYear,
+  endOfYear
+} from 'date-fns';
 import { In, Not, Repository } from 'typeorm';
 import exceptions from 'src/commom/utils/exceptions';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -80,9 +93,21 @@ export class TaskService {
     userOwnerId: number = null
   ) {
     try {
+      
+      const startDate = new Date(`${dateEvent} ${startTime}`);
+      const endDate = new Date(`${dateEvent} ${endTime}`);
 
-      const startHour = addMinutes(new Date(`${dateEvent} ${startTime}`), 1);
-      const endHour = subMinutes(new Date(`${dateEvent} ${endTime}`), 1);
+      // Validação do horário
+      if (endDate <= startDate) {
+        throw new HttpException(
+          'Horário de término deve ser maior que o horário de início',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      // Ajuste para dar margem mínima (igual ao seu original)
+      const startHour = addMinutes(startDate, 1);
+      const endHour = subMinutes(endDate, 1);
 
       const where: any = {
         dateEvent,
@@ -90,34 +115,39 @@ export class TaskService {
       };
 
       if (userOwnerId) {
-        where.userOwnerId = userOwnerId; // se for uma coluna normal
+        where.userOwnerId = userOwnerId;
       }
 
-      const scheduleEvents = await this.taskRepository.find({
-        where
-      });
-
-      let scheduleEventExists = false;
-
+      const scheduleEvents = await this.taskRepository.find({ where });
+      console.log(scheduleEvents, dateEvent, startTime, endTime, userOwnerId, 'verify - task.service.ts:122')
+      // Verificar conflitos
+      
       for await (const scheduleEvent of scheduleEvents) {
         const start = new Date(`${scheduleEvent.dateEvent} ${scheduleEvent.startTime}`);
         const end = new Date(`${scheduleEvent.dateEvent} ${scheduleEvent.endTime}`);
 
-        if ((startHour >= start && startHour <= end) || (endHour >= start && endHour <= end)) {
-          scheduleEventExists = true;
-        }
-      }
+        // Caso 1: startHour está dentro do intervalo da tarefa existente
+        const startInside = startHour >= start && startHour <= end;
 
-      if (scheduleEventExists) {
-        throw new HttpException(`Já existe uma tarefa para essa data e hora!`, HttpStatus.NOT_FOUND);
+        // Caso 2: endHour está dentro do intervalo da tarefa existente
+        const endInside = endHour >= start && endHour <= end;
+
+        // Caso 3: novo intervalo engloba completamente o existente
+        const englobaCompletamente = startHour <= start && endHour >= end;
+
+        if (startInside || endInside || englobaCompletamente) {
+          throw new HttpException(
+            `Já existe uma tarefa para essa data e hora!`,
+            HttpStatus.NOT_FOUND,
+          );
+        }
       }
 
       return true;
     } catch (err) {
       loggers.loggerMessage('error', err);
-      return exceptions.exceptionsReturn(err)
+      return exceptions.exceptionsReturn(err);
     }
-
   }
 
   async findAll(query: TaskFindAllDto, userReq: CurrentUserDto) {
@@ -303,7 +333,7 @@ export class TaskService {
   }
 
   async update(taskId: number, updateTaskDto: UpdateTaskDto, userReq: CurrentUserDto) {
-    try {
+    try { 
 
       const taskExists = await this.taskRepository.findOne({ where: { id: taskId } })
 
@@ -321,25 +351,27 @@ export class TaskService {
 
       if (Number(userReq.sub) !== Number(taskExists.userOwnerId) && userReq.role !== RoleEnum.ADMIN) {
         throw new HttpException(`Somente o proprietario da tarefa ou um administrador pode remover.`, HttpStatus.FORBIDDEN)
-      }
+      }     
+
 
       if (updateTaskDto.dateEvent || updateTaskDto.startTime || updateTaskDto.endTime) {
 
-        if (updateTaskDto.dateEvent && updateTaskDto.startTime && updateTaskDto.endTime) {
+        if (updateTaskDto.dateEvent && updateTaskDto.startTime && updateTaskDto.endTime) {          
 
           const eventDate = startOfDay(parseISO(updateTaskDto.dateEvent));
-          const today = startOfDay(new Date());
+          const today = startOfDay(new Date());          
 
           if (isBefore(eventDate, today)) {
+            console.log(eventDate, today, 'before 2 - task.service.ts:365')
             throw new HttpException(`Data não pode ser menor que a data de hoje!`, HttpStatus.BAD_REQUEST);
-          }
+          }          
 
           const taskDataHourExists = await this.verifyDateAndHourFree(
             updateTaskDto.dateEvent,
             updateTaskDto.startTime,
             updateTaskDto.endTime,
             taskExists.userOwnerId
-          );
+          );         
 
           if (!taskDataHourExists) {
             throw new HttpException(`Já existe uma tarefa para essa data e hora!`, HttpStatus.CONFLICT);
@@ -355,7 +387,7 @@ export class TaskService {
       return taskUpdate
 
     } catch (err) {
-      loggers.loggerMessage('error', err);
+      loggers.loggerMessage('error', err);      
       return exceptions.exceptionsReturn(err)
     }
   }

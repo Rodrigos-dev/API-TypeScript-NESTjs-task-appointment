@@ -11,7 +11,7 @@ async function exceptionsReturn(err: any) {
 
             const error = {
                 message: err.message ? err.message : null,
-                response: err.response && err.response.data.error_messages ? err.response.data.error_messages : null
+                response: err.response && err.response?.data?.error_messages ? err.response.data.error_messages : null
             }
 
             console.log(error)
