@@ -68,7 +68,7 @@ export class UserService {
             userCreated.avatar = {
               mimeType: 'image/jpeg',
               avatarName: avatarName,
-              urlAvatar: url, // substitua por `url` se você descomentar o upload
+              urlAvatar: url, 
             };
 
             if (url) {
@@ -103,10 +103,10 @@ export class UserService {
       if (!orderBy) orderBy = 'DESC';      
 
       const [result, total] = await this.userRepository.findAndCount({
-        skip: (page - 1) * take, // Pula registros com base na página
-        take: take, // Limita a quantidade de registros
+        skip: (page - 1) * take, 
+        take: take, 
         order: {
-          createdAt: orderBy, // Ordena pela data de criação (exemplo, ajuste conforme sua tabela)
+          createdAt: orderBy, 
         },
       });
 
@@ -243,7 +243,6 @@ export class UserService {
               const url = await cloudinary.uploadFileToCloudinary({ urlPathToUpload: montedUrl, base64: updateUserDto.avatar.base64, nameFile: avatarName })
 
               if (!url) {
-                loggers.loggerMessage('error', 'Url não feito upload');
                 throw new HttpException(`Url não feito upload `, HttpStatus.BAD_REQUEST)
               }
 

@@ -124,13 +124,8 @@ export class TaskService {
         const start = new Date(`${scheduleEvent.dateEvent} ${scheduleEvent.startTime}`);
         const end = new Date(`${scheduleEvent.dateEvent} ${scheduleEvent.endTime}`);
 
-        // Caso 1: startHour está dentro do intervalo da tarefa existente
         const startInside = startHour >= start && startHour <= end;
-
-        // Caso 2: endHour está dentro do intervalo da tarefa existente
         const endInside = endHour >= start && endHour <= end;
-
-        // Caso 3: novo intervalo engloba completamente o existente
         const englobaCompletamente = startHour <= start && endHour >= end;
 
         if (startInside || endInside || englobaCompletamente) {
@@ -360,7 +355,7 @@ export class TaskService {
           const today = startOfDay(new Date());
 
           if (isBefore(eventDate, today)) {
-            console.log(eventDate, today, 'before 2 - task.service.ts:363')
+            console.log(eventDate, today, 'before 2 - task.service.ts:358')
             throw new HttpException(`Data não pode ser menor que a data de hoje!`, HttpStatus.BAD_REQUEST);
           }
 
