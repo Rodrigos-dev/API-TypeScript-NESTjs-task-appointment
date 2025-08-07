@@ -3,7 +3,7 @@ import exceptions from '../utils/exceptions';
 import { HttpException, HttpStatus } from '@nestjs/common';
 
 interface UploadFileDto {
-    urlPathToUpload: string, //é o local exato de onde vamos armazernar o arquivo  no dropbox
+    urlPathToUpload: string,
     base64: string
 }
 
@@ -106,9 +106,9 @@ const deleteFolderUserDropbox = async (userId: number) => {
         const data = await response.json();
 
         if (response.ok) {
-            console.log('Pasta deletada com sucesso:', data);
+            console.log('Pasta deletada com sucesso: - index.ts:109', data);
         } else {
-            console.error('Falha ao deletar a pasta:', data);
+            console.error('Falha ao deletar a pasta: - index.ts:111', data);
         }
     } catch (err) {
         loggers.loggerMessage('error', err.message || err);
@@ -145,10 +145,10 @@ const deleteFileDropbox = async (urlFileTodelete: string) => {
         const data = await response.json();
 
         if (response.ok) {
-            console.log('Media deletado com sucesso:', data);
+            console.log('Media deletado com sucesso: - index.ts:148', data);
             return true
         } else {
-            console.error('Falha ao deletar a media:', data);
+            console.error('Falha ao deletar a media: - index.ts:151', data);
         }
     } catch (err) {
         loggers.loggerMessage('error', err.message || err);
