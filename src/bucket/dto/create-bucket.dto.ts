@@ -42,7 +42,8 @@ export class CreateUrlSignedBucketDto {
     @IsEnum(FolderNameType, {
         message: 'Apenas esses tipos de árquivos FolderNameType enum',
     })  
-    folderNameType = FolderNameType
+    folderNameType: FolderNameType;
+
 
     @ApiProperty({
         type: [ItemToUploadMediasDto]
