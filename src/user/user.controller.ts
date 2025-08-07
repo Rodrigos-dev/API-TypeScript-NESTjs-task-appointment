@@ -89,7 +89,7 @@ export class UserController {
     required: true,
   })
   @Get(':userId')
-  @AuthRole(RoleEnum.ADMIN, RoleEnum.USER)
+  //@AuthRole(RoleEnum.ADMIN, RoleEnum.USER)
   findOneById(@Param('userId') userId: string, @UserReq() userReq: CurrentUserDto) {
     return this.userService.findOneById(+userId);
   }
@@ -130,7 +130,7 @@ export class UserController {
     return this.userService.remove(+userId);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('jwt-auth')
   @ApiHeader({
     name: 'Authorization',

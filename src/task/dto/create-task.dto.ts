@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsDateString, IsNotEmpty } from "class-validator";
+import { IsDateString, IsNotEmpty, Matches } from "class-validator";
 
 export class CreateTaskDto {
 
@@ -24,6 +24,7 @@ export class CreateTaskDto {
         description: 'Hora de início no formato HH:mm',
     })
     @IsNotEmpty({ message: 'Início da tarefa deve ser enviado.' })
+    @Matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, { message: 'A hora de início deve estar no formato HH:mm.' })
     startTime: string;
 
     @ApiProperty({
@@ -33,6 +34,7 @@ export class CreateTaskDto {
         description: 'Hora de término no formato HH:mm',
     })
     @IsNotEmpty({ message: 'Fim da tarefa deve ser enviado.' })
+    @Matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, { message: 'A hora de início deve estar no formato HH:mm.' })
     endTime: string;
 
     @ApiProperty()

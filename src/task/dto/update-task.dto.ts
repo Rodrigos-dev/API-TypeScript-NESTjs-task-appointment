@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsDateString, IsEnum, IsNotEmpty, IsOptional, Matches } from 'class-validator';
 import { StatusTaskEnum } from 'src/commom/enums/task.enums';
 
 export class UpdateTaskDto {
@@ -29,6 +29,7 @@ export class UpdateTaskDto {
         description: 'Hora de início no formato HH:mm',
     })
     @IsOptional()
+    @Matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, { message: 'A hora de início deve estar no formato HH:mm.' })
     startTime?: string;
 
     @ApiProperty({
@@ -38,6 +39,7 @@ export class UpdateTaskDto {
         description: 'Hora de término no formato HH:mm',
     })
     @IsOptional()
+    @Matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, { message: 'A hora de início deve estar no formato HH:mm.' })
     endTime?: string;
 
     @ApiProperty()

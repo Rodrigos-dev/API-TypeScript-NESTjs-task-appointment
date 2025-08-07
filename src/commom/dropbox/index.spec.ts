@@ -116,7 +116,7 @@ describe('Dropbox Service', () => {
             await dropbox.deleteFolderUserDropbox(123);
 
             expect(mockFetch).toHaveBeenCalledTimes(1);
-            expect(consoleLogSpy).toHaveBeenCalledWith('Pasta deletada com sucesso:', { status: 'ok' });
+            expect(consoleLogSpy).toHaveBeenCalledWith('Pasta deletada com sucesso: - index.ts:109', { status: 'ok' });
             expect(mockFetch).toHaveBeenCalledWith(
                 'https://api.dropboxapi.com/2/files/delete_v2',
                 expect.objectContaining({
@@ -150,7 +150,7 @@ describe('Dropbox Service', () => {
             const result = await dropbox.deleteFileDropbox('users/123/image.jpeg');
 
             expect(result).toBe(true);
-            expect(consoleLogSpy).toHaveBeenCalledWith('Media deletado com sucesso:', { status: 'ok' });
+            expect(consoleLogSpy).toHaveBeenCalledWith('Media deletado com sucesso: - index.ts:148', { status: 'ok' });
             expect(mockFetch).toHaveBeenCalledTimes(1);
             consoleLogSpy.mockRestore();
         });
@@ -178,7 +178,7 @@ describe('Dropbox Service', () => {
 
             await dropbox.deleteFileDropbox('users/123/image.jpeg');
 
-            expect(consoleErrorSpy).toHaveBeenCalledWith('Falha ao deletar a media:', mockErrorResponse);
+            expect(consoleErrorSpy).toHaveBeenCalledWith('Falha ao deletar a media: - index.ts:151', mockErrorResponse);
             consoleErrorSpy.mockRestore();
         });
     });

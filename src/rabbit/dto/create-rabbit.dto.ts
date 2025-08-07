@@ -1,8 +1,14 @@
-export enum TypeQueueRabbit{
-    SEND_EMAIL_FORGET_PASSWORD = 'send-email-forget-password'
-}
+import { ApiProperty } from "@nestjs/swagger";
+import { IsEnum, IsNotEmpty } from "class-validator";
+import { TypeQueue } from "src/commom/enums/queue-enum"
 
-export class CreateRabbitDto {    
-    message: string
-    typeQueueRabbit: TypeQueueRabbit
+export class CreateRabbitDto {
+  @ApiProperty({})
+  @IsNotEmpty({ message: 'A mensagem não pode ser vazia.' })
+  message: string;
+
+  @ApiProperty({})
+  @IsNotEmpty({ message: 'O tipo de fila não pode ser vazio.' })
+  @IsEnum(TypeQueue, { message: 'O tipo de fila inválido.' })
+  typeQueueRabbit: TypeQueue;
 }

@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsEnum, IsIn, IsNotEmpty, IsOptional } from "class-validator";
+import { IsDateString, IsEnum, IsIn, IsNotEmpty, IsOptional } from "class-validator";
 import { PeriodTasksEnum, StatusTaskEnum } from "src/commom/enums/task.enums";
 
 export class TaskFindAllDto {
@@ -21,6 +21,7 @@ export class TaskFindAllDto {
         description: 'Data da tarefa no formato YYYY-MM-DD',
     })
     @IsOptional()
+    @IsDateString({}, { message: 'A data deve estar no formato ISO 8601 (YYYY-MM-DD).' })
     dateEvent?: string;    
 
     @ApiProperty({ required: false })
