@@ -31,7 +31,7 @@ export class PushNotificationService {
       }
 
       // Verifica se a string contém '.com' e comeca 'https://'
-      if (!data.notification.imageUrl.match(/\.com/) || !data.notification.imageUrl.match(/^https:\/\//)) {
+      if (data.notification.imageUrl && (!data.notification.imageUrl.match(/\.com/) || !data.notification.imageUrl.match(/^https:\/\//))) {
         throw new HttpException(`message must have a url valid https://.....-.com or send '' cause not have a url`, HttpStatus.BAD_REQUEST)
       }
 
@@ -44,7 +44,6 @@ export class PushNotificationService {
       }    
       
       if(data.tokens.length > 499){
-        loggers.loggerMessage('error', 'only 500 tokens each time')
         throw new HttpException(`only 500 tokens each time`, HttpStatus.BAD_REQUEST)
       }
 
@@ -73,7 +72,7 @@ export class PushNotificationService {
               userIdsReceivePushDatabase.push(register.userId)
             }
 
-            const notificationSend = index.postPushNotification(data)
+            const notificationSend = await index.postPushNotification(data)
   
             page++
 
@@ -87,8 +86,8 @@ export class PushNotificationService {
         for await (const userId of userIdsReceivePushDatabase) { 
 
           const push = new PushNotification()
-            push.message = data.notification.body ? data.notification.body : null,
-            push.title = data.notification.title ? data.notification.title : null,
+            push.message = data.notification.body,
+            push.title = data.notification.title,
             push.imageUrl = data.notification.imageUrl ? data.notification.imageUrl : null,
             push.allUsers = true,
             push.icon = data.icon ? data.icon : null,
@@ -109,7 +108,7 @@ export class PushNotificationService {
 
         const tokensRegistereds: any = await queryUsers.getMany()        
 
-        const notificationSend = index.postPushNotification(data)
+        const notificationSend = await index.postPushNotification(data)
 
         const pushSaveIndatabase = []
 
@@ -117,8 +116,8 @@ export class PushNotificationService {
 
           const push = new PushNotification()
 
-          push.message = data.notification.body ? data.notification.body : null,
-          push.title = data.notification.title ? data.notification.title : null,
+          push.message = data.notification.body,
+          push.title = data.notification.title,
           push.imageUrl = data.notification.imageUrl ? data.notification.imageUrl : null,
           push.allUsers = false,
           push.icon = data.icon ? data.icon : null,

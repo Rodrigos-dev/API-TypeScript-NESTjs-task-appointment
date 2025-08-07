@@ -13,10 +13,10 @@ export class RabbitService {
 
     const messageFila = {    
       message: createRabbitDto.message,
-      typeQueuRabbit: createRabbitDto.typeQueuRabbit
+      typeQueuRabbit: createRabbitDto.typeQueueRabbit
     };
 
-    const addedInQueue = await this.amqpConnection.publish('amq.direct', `${createRabbitDto.typeQueuRabbit}`, messageFila)
+    const addedInQueue = await this.amqpConnection.publish('amq.direct', `${createRabbitDto.typeQueueRabbit}`, messageFila)
 
     return addedInQueue
   }
