@@ -182,7 +182,7 @@ describe('AuthService', () => {
         it('deve lançar erro se o token for inválido', () => {
             jwtService.verify.mockImplementation(() => { throw new Error(); });
 
-            expect(() => service.verifyToken('invalid')).toThrow('Invalid token');
+            expect(() => service.verifyToken('invalid')).toThrow('Token Invalido');
         });
     });
 });

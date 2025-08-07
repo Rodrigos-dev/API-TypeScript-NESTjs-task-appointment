@@ -52,7 +52,6 @@ export class AuthService {
         
 
         if (!user && refresh) {
-            loggers.loggerMessage('error', 'Email inválido, usuário não encontrado!')
             throw new HttpException(`Usuario não encontrado refaça o login!`, HttpStatus.NOT_FOUND);
         }
 
@@ -63,7 +62,6 @@ export class AuthService {
             role: user.role 
         };
 
-        //Generate 2 tokens
         user.access_token = await this.generateOneHourToken(payload);// token to use 
         user.access_token_to_refresh = await this.generateThirtyHourToken(payload);// token to use for refreshToken       
 
@@ -72,27 +70,24 @@ export class AuthService {
         return result;
     }
 
-    // Generate token expire 1 hour
     async generateOneHourToken(payload: CurrentUserDto) {
         return this.jwtService.sign(payload, {
             expiresIn: '1h', // 1 hora de expiração
         });
     }
 
-    // GGenerate token expire 30 hour
     async generateThirtyHourToken(payload: CurrentUserDto) {
         return this.jwtService.sign(payload, {
             expiresIn: '30h', // 3 horas de expiração
         });
     }
 
-    // Método para verificar o token
     verifyToken(token: string) {
         try {
-            const decoded = this.jwtService.verify(token); // Verifica o token
-            return decoded; // Retorna os dados decodificados do token
+            const decoded = this.jwtService.verify(token); 
+            return decoded; 
         } catch (e) {
-            throw new Error('Invalid token');
+            throw new Error('Token Invalido');
         }
     }
 }
