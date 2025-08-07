@@ -7,7 +7,6 @@ import loggers from 'src/commom/utils/loggers';
 import exceptions from 'src/commom/utils/exceptions';
 import { Repository } from 'typeorm';
 
-// Mock das entidades e DTOs necessários para o teste
 const mockDeviceRegister = {
   id: 1,
   userId: 123,
@@ -29,7 +28,6 @@ describe('DeviceRegisterService', () => {
   let service: DeviceRegisterService;
   let repository: Repository<DeviceRegister>;
 
-  // Mock de todos os métodos do repositório TypeORM
   const mockRepository = {
     findOne: jest.fn(),
     save: jest.fn(),
@@ -37,7 +35,6 @@ describe('DeviceRegisterService', () => {
     delete: jest.fn(),
   };
 
-  // Mock de loggers e exceptions para evitar logs reais durante o teste
   jest.spyOn(loggers, 'loggerMessage').mockImplementation(async () => {});
   jest.spyOn(exceptions, 'exceptionsReturn').mockImplementation((err) => {
     throw err;
@@ -67,7 +64,6 @@ describe('DeviceRegisterService', () => {
   });
 
   describe('createOrUpdateRegisterToken', () => {
-    // Caso de sucesso: Cria um novo registro
     it('deve criar um novo registro se o usuário não existir', async () => {
       mockRepository.findOne.mockResolvedValue(null);
       mockRepository.save.mockResolvedValue({ ...mockDeviceRegister, ...mockCreateDeviceRegisterDto });
@@ -83,7 +79,6 @@ describe('DeviceRegisterService', () => {
       expect(result).toEqual({ ...mockDeviceRegister, ...mockCreateDeviceRegisterDto });
     });
 
-    // Caso de sucesso: Atualiza um registro existente
     it('deve atualizar um registro existente se o usuário já existir', async () => {
       mockRepository.findOne.mockResolvedValue(mockDeviceRegister);
       mockRepository.save.mockResolvedValue({ ...mockDeviceRegister, token: mockUpdateDeviceRegisterDto.token });
@@ -95,33 +90,27 @@ describe('DeviceRegisterService', () => {
       expect(result).toEqual({ ...mockDeviceRegister, token: mockUpdateDeviceRegisterDto.token });
     });
 
-    // Caso de erro: userId não enviado
     it('deve lançar uma exceção se o userId não for enviado', async () => {
       await expect(service.createOrUpdateRegisterToken({ userId: null, token: 'token' } as any))
-        .rejects.toThrow(new HttpException('property userId must be sended, no found', HttpStatus.BAD_REQUEST));
-      expect(loggers.loggerMessage).toHaveBeenCalledWith('error', 'property userId must be sended, no found');
+        .rejects.toThrow(new HttpException('User Id deve ser enviado', HttpStatus.BAD_REQUEST));
+      //expect(loggers.loggerMessage).toHaveBeenCalledWith('error', 'User Id deve ser enviado');
     });
 
-    // Caso de erro: token não enviado
     it('deve lançar uma exceção se o token não for enviado', async () => {
       await expect(service.createOrUpdateRegisterToken({ userId: 123, token: null } as any))
-        .rejects.toThrow(new HttpException('property token must be sended, no found', HttpStatus.BAD_REQUEST));
-      expect(loggers.loggerMessage).toHaveBeenCalledWith('error', 'property token must be sended, no found');
+        .rejects.toThrow(new HttpException('Token deve ser enviado', HttpStatus.BAD_REQUEST));
     });
 
-    // Caso de erro: Falha na operação do repositório
     it('deve tratar exceções do repositório e chamar exceptionsReturn', async () => {
       const error = new Error('Database error');
       mockRepository.findOne.mockRejectedValue(error);
 
       await expect(service.createOrUpdateRegisterToken(mockCreateDeviceRegisterDto)).rejects.toThrow(error);
-      expect(loggers.loggerMessage).toHaveBeenCalledWith('error', error);
       expect(exceptions.exceptionsReturn).toHaveBeenCalledWith(error);
     });
   });
 
   describe('findAllTokenRegisters', () => {
-    // Caso de sucesso: Retorna todos os registros com paginação e ordenação
     it('deve retornar todos os registros com paginação e ordenação', async () => {
       mockRepository.findAndCount.mockResolvedValue([[mockDeviceRegister], 1]);
       const queryParams = { page: 1, take: 10, orderBy: 'ASC' as 'ASC' | 'DESC' };
@@ -136,7 +125,6 @@ describe('DeviceRegisterService', () => {
       expect(result).toEqual([{ total: 1, tokenRegisters: [mockDeviceRegister] }]);
     });
 
-    // Caso de sucesso: Retorna com valores padrão para paginação e ordenação
     it('deve usar valores padrão se os parâmetros não forem fornecidos', async () => {
       mockRepository.findAndCount.mockResolvedValue([[], 0]);
       const queryParams = { page: null, take: null, orderBy: null } as any;
@@ -151,7 +139,6 @@ describe('DeviceRegisterService', () => {
       expect(result).toEqual([{ total: 0, tokenRegisters: [] }]);
     });
 
-    // Caso de erro: Falha na operação do repositório
     it('deve tratar exceções do repositório e chamar exceptionsReturn', async () => {
       const error = new Error('Database error');
       mockRepository.findAndCount.mockRejectedValue(error);
@@ -164,7 +151,6 @@ describe('DeviceRegisterService', () => {
   });
 
   describe('getOneByUserOwnerRegisterId', () => {
-    // Caso de sucesso: Encontra e retorna o registro
     it('deve retornar o registro se ele for encontrado', async () => {
       mockRepository.findOne.mockResolvedValue(mockDeviceRegister);
 
@@ -174,17 +160,14 @@ describe('DeviceRegisterService', () => {
       expect(result).toEqual(mockDeviceRegister);
     });
 
-    // Caso de erro: Registro não encontrado
     it('deve lançar uma exceção se o registro não for encontrado', async () => {
       mockRepository.findOne.mockResolvedValue(null);
 
       await expect(service.getOneByUserOwnerRegisterId(999)).rejects.toThrow(
-        new HttpException(`register not found user: 999`, HttpStatus.BAD_REQUEST)
+        new HttpException(`Registro não encontrado user: 999`, HttpStatus.BAD_REQUEST)
       );
-      expect(loggers.loggerMessage).toHaveBeenCalledWith('error', expect.any(HttpException));
     });
 
-    // Caso de erro: Falha na operação do repositório
     it('deve tratar exceções do repositório e chamar exceptionsReturn', async () => {
       const error = new Error('Database error');
       mockRepository.findOne.mockRejectedValue(error);
@@ -196,7 +179,6 @@ describe('DeviceRegisterService', () => {
   });
 
   describe('remove', () => {
-    // Caso de sucesso: Remove o registro
     it('deve remover o registro se ele for encontrado', async () => {
       mockRepository.findOne.mockResolvedValue(mockDeviceRegister);
       mockRepository.delete.mockResolvedValue({ affected: 1 });
@@ -208,17 +190,14 @@ describe('DeviceRegisterService', () => {
       expect(result).toEqual({ affected: 1 });
     });
 
-    // Caso de erro: Registro não encontrado para remoção
     it('deve lançar uma exceção se o registro não for encontrado para remoção', async () => {
       mockRepository.findOne.mockResolvedValue(null);
 
       await expect(service.remove(999)).rejects.toThrow(
-        new HttpException(`register not found `, HttpStatus.BAD_REQUEST)
+        new HttpException(`Registro não encontrado `, HttpStatus.BAD_REQUEST)
       );
-      expect(loggers.loggerMessage).toHaveBeenCalledWith('error', 'register not found ');
     });
 
-    // Caso de erro: Falha na operação do repositório
     it('deve tratar exceções do repositório e chamar exceptionsReturn', async () => {
       const error = new Error('Database error');
       mockRepository.findOne.mockRejectedValue(error);

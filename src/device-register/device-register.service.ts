@@ -18,13 +18,11 @@ export class DeviceRegisterService {
     try {
 
       if (!data.userId) {
-        loggers.loggerMessage('error', 'property userId must be sended, no found')
-        throw new HttpException(`property userId must be sended, no found`, HttpStatus.BAD_REQUEST)
+        throw new HttpException(`User Id deve ser enviado`, HttpStatus.BAD_REQUEST)
       }
 
       if (!data.token) {
-        loggers.loggerMessage('error', 'property token must be sended, no found')
-        throw new HttpException(`property token must be sended, no found`, HttpStatus.BAD_REQUEST)
+        throw new HttpException(`Token deve ser enviado`, HttpStatus.BAD_REQUEST)
       }
 
       const registerUserExists = await this.deviceRegisterRepository.findOne({
@@ -90,7 +88,7 @@ export class DeviceRegisterService {
       })       
 
       if (!tokenExists) {
-        throw new HttpException(`register not found user: ${userIdOwnerRegisterToken}`, HttpStatus.BAD_REQUEST)
+        throw new HttpException(`Registro não encontrado user: ${userIdOwnerRegisterToken}`, HttpStatus.BAD_REQUEST)
       }
 
       return tokenExists
@@ -111,8 +109,7 @@ export class DeviceRegisterService {
       })        
 
       if (!tokenExists) {
-        loggers.loggerMessage('error', 'register not found ')
-        throw new HttpException(`register not found `, HttpStatus.BAD_REQUEST)
+        throw new HttpException(`Registro não encontrado `, HttpStatus.BAD_REQUEST)
       }     
 
       return await this.deviceRegisterRepository.delete(tokenExists.id)
