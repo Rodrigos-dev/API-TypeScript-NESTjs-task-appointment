@@ -25,9 +25,7 @@ export class EmailSendService {
         subject: sendEmailBody.subject,
         text: sendEmailBody.text,
       })
-
-      console.log(sendEmail)
-
+      
       return sendEmail
 
     } catch (err) {

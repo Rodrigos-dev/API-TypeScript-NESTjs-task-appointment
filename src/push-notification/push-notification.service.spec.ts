@@ -232,7 +232,7 @@ describe('PushNotificationService', () => {
       };
 
       await expect(service.sendPushNotification(data)).rejects.toThrow(
-        new HttpException('message must have a title', HttpStatus.BAD_REQUEST)
+        new HttpException('Titulo é obrigatório', HttpStatus.BAD_REQUEST)
       );
     });
 
@@ -247,7 +247,7 @@ describe('PushNotificationService', () => {
       };
 
       await expect(service.sendPushNotification(data)).rejects.toThrow(
-        new HttpException('message must have a body', HttpStatus.BAD_REQUEST)
+        new HttpException('Body é obrigatório', HttpStatus.BAD_REQUEST)
       );
     });
 
@@ -262,7 +262,7 @@ describe('PushNotificationService', () => {
       };
 
       await expect(service.sendPushNotification(data)).rejects.toThrow(
-        new HttpException('message must have a url valid https://.....-.com or send \'\' cause not have a url', HttpStatus.BAD_REQUEST)
+        new HttpException('Deve enviar uma url válida https://...', HttpStatus.BAD_REQUEST)
       );
     });
     
@@ -282,7 +282,7 @@ describe('PushNotificationService', () => {
       } catch (err) {
         expect(err).toBeInstanceOf(HttpException);
         expect((err as HttpException).getStatus()).toBe(HttpStatus.BAD_REQUEST);
-        expect((err as HttpException).message).toBe('only 500 tokens each time');
+        expect((err as HttpException).message).toBe('Apenas 500 tokens por vez');
         expect(loggers.loggerMessage).toHaveBeenCalledWith('error', err);
       }
     });
@@ -388,9 +388,8 @@ describe('PushNotificationService', () => {
       const pushIds = [];
 
       await expect(service.delete(pushIds)).rejects.toThrow(
-        new HttpException('Id ou ids doa notificação a ser deletada deve ser enviada/s', HttpStatus.BAD_REQUEST)
+        new HttpException('Id ou ids das notificação a ser deletada deve ser enviada/s', HttpStatus.BAD_REQUEST)
       );
-      expect(loggers.loggerMessage).toHaveBeenCalledWith('error', 'Id ou ids doa notificação a ser deletada deve ser enviada/s');
     });
 
     it('deve tratar exceções do repositório', async () => {

@@ -23,16 +23,16 @@ export class PushNotificationService {
       let take = 499;
 
       if (!data.notification.title || data.notification.title === '') {
-        throw new HttpException(`message must have a title`, HttpStatus.BAD_REQUEST)
+        throw new HttpException(`Titulo é obrigatório`, HttpStatus.BAD_REQUEST)
       }
 
       if (!data.notification.body || data.notification.body === '') {
-        throw new HttpException(`message must have a body`, HttpStatus.BAD_REQUEST)
+        throw new HttpException(`Body é obrigatório`, HttpStatus.BAD_REQUEST)
       }
 
       // Verifica se a string contém '.com' e comeca 'https://'
       if (data.notification.imageUrl && (!data.notification.imageUrl.match(/\.com/) || !data.notification.imageUrl.match(/^https:\/\//))) {
-        throw new HttpException(`message must have a url valid https://.....-.com or send '' cause not have a url`, HttpStatus.BAD_REQUEST)
+        throw new HttpException(`Deve enviar uma url válida https://...`, HttpStatus.BAD_REQUEST)
       }
 
       if (data.notification.imageUrl === '') {
@@ -44,7 +44,7 @@ export class PushNotificationService {
       }    
       
       if(data.tokens.length > 499){
-        throw new HttpException(`only 500 tokens each time`, HttpStatus.BAD_REQUEST)
+        throw new HttpException(`Apenas 500 tokens por vez`, HttpStatus.BAD_REQUEST)
       }
 
       if (data.tokens.length === 0) {
@@ -139,8 +139,8 @@ export class PushNotificationService {
     try{
 
       if(pushIds.length === 0) {
-        loggers.loggerMessage('error', 'Id ou ids doa notificação a ser deletada deve ser enviada/s')
-        throw new HttpException(`Id ou ids doa notificação a ser deletada deve ser enviada/s`, HttpStatus.BAD_REQUEST)
+        //.loggerMessage('error', 'Id ou ids das notificação a ser deletada deve ser enviada/s')
+        throw new HttpException(`Id ou ids das notificação a ser deletada deve ser enviada/s`, HttpStatus.BAD_REQUEST)
       }
 
       return await this.pushNotificationRepository.delete(pushIds)
