@@ -99,6 +99,10 @@
     "testEnvironment": "node",
     "moduleNameMapper": {
       "^src/(.*)$": "<rootDir>/src/$1"
-    }
+    },
+    "coveragePathIgnorePatterns": [
+      "app.service.ts",
+      "src/user-test-bull-queue/"    
+    ]
   }
 }

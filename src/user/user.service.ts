@@ -13,7 +13,7 @@ import { ForgetPasswordDto } from './dto/forget-password.dto';
 import { EmailSendService } from 'src/email-send/email-send.service';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { RabbitService } from 'src/rabbit/rabbit.service';
-import { CreateRabbitDto, TypeQueuRabbit } from 'src/rabbit/dto/create-rabbit.dto';
+import { CreateRabbitDto, TypeQueueRabbit } from 'src/rabbit/dto/create-rabbit.dto';
 import { RoleEnum, UserTypePathBucketEnum } from 'src/commom/enums/user-enums';
 import { CurrentUserDto } from 'src/auth/dto/current-user-dto';
 import { UserFindAllByQueryDto, UserFindAllDto } from './dto/query-filters.dto';
@@ -302,7 +302,7 @@ export class UserService {
 
       const dataRabbit: CreateRabbitDto = {
         message: JSON.stringify(dataEmail),
-        typeQueuRabbit: TypeQueuRabbit.SEND_EMAIL_FORGET_PASSWORD
+        typeQueueRabbit: TypeQueueRabbit.SEND_EMAIL_FORGET_PASSWORD
       }
 
       const queueAdded = await this.rabbitService.create(dataRabbit)

@@ -501,7 +501,7 @@ describe('UserService - findOneByEmail', () => {
   it('deve lançar exceção se o usuário não for encontrado (try/catch)', async () => {
     const email = 'naoexiste@email.com';
 
-    userRepo.findOne.mockResolvedValue(null); // Simula que não encontrou o usuário
+    userRepo.findOne.mockResolvedValue(null);
 
     try {
       await service.findOneByEmail(email);
