@@ -16,8 +16,7 @@ export class EmailSendService {
       sendEmailBody.emailTo = sendEmailBody.emailTo.toLowerCase()
 
       if ((!sendEmailBody.emailTo) || (sendEmailBody.emailTo && !sendEmailBody.emailTo.includes('@'))) {
-        loggers.loggerMessage('error', `Email não enviado ou inválido!`)
-        throw new HttpException('email inválido', HttpStatus.BAD_REQUEST);
+        throw new HttpException('Email não enviado ou inválido!', HttpStatus.BAD_REQUEST);
       }
 
       const sendEmail = await this.mailerService.sendMail({
@@ -32,6 +31,7 @@ export class EmailSendService {
       return sendEmail
 
     } catch (err) {
+      loggers.loggerMessage('error', err)
       return exceptions.exceptionsReturn(err)
     }
 
