@@ -52,5 +52,9 @@ pids
 *.seed
 *.pid.lock
 
+apibancotypeorminiciado-dev-firebase-adminsdk-k0hff-d194ee7cc6.json
+apibancotypeorminiciado-prod-firebase-adminsdk-6w4vv-ad41cde8f7.json
+mapas/
+
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
