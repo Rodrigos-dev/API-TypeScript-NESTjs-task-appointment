@@ -130,25 +130,25 @@ Testes unitários com Jest para services, controllers e DTOs
 
 <table>
   <tr>
-    <td><img src="https://github.com/user-attachments/assets/d40a51c0-c93c-469e-ae12-6506549c8bd5" width="50"/></td>
-    <td><img src="https://github.com/user-attachments/assets/b766e71a-233e-4e55-b739-184bd0fc40d9" width="50"/></td>
-    <td><img src="https://github.com/user-attachments/assets/b84f1fda-ec6b-4f4a-92f7-6e34db89c4c7" width="50"/></td>
-    <td><img src="https://github.com/user-attachments/assets/3391371b-8eb9-4c35-beb5-da9b44cf408a" width="50"/></td>
-    <td><img src="https://github.com/user-attachments/assets/0481e3ec-5f70-4505-84c2-a24adc2059c3" width="50"/></td>
+    <td><img src="https://github.com/user-attachments/assets/d40a51c0-c93c-469e-ae12-6506549c8bd5" width="80"/></td>
+    <td><img src="https://github.com/user-attachments/assets/b766e71a-233e-4e55-b739-184bd0fc40d9" width="80"/></td>
+    <td><img src="https://github.com/user-attachments/assets/b84f1fda-ec6b-4f4a-92f7-6e34db89c4c7" width="80"/></td>
+    <td><img src="https://github.com/user-attachments/assets/3391371b-8eb9-4c35-beb5-da9b44cf408a" width="80"/></td>
+    <td><img src="https://github.com/user-attachments/assets/0481e3ec-5f70-4505-84c2-a24adc2059c3" width="80"/></td>
   </tr>
   <tr>    
-    <td><img src="https://github.com/user-attachments/assets/b35440e5-5bc4-4eeb-9eb8-fda03a734860" width="50"/></td>
-    <td><img src="https://github.com/user-attachments/assets/dbe566d6-e0c8-40c1-bbb6-093d0fb34953" width="50"/></td>
-    <td><img src="https://github.com/user-attachments/assets/43258844-c196-4fb5-aeb4-b0ba3d900445" width="50"/></td>
-    <td><img src="https://github.com/user-attachments/assets/1a497557-5062-4ecc-aa08-6ea92be8d503" width="50"/></td>
-    <td><img src="https://github.com/user-attachments/assets/1f15bd26-d3e4-4e4a-8ced-65f57b82980e" width="50"/></td>
+    <td><img src="https://github.com/user-attachments/assets/b35440e5-5bc4-4eeb-9eb8-fda03a734860" width="80"/></td>
+    <td><img src="https://github.com/user-attachments/assets/dbe566d6-e0c8-40c1-bbb6-093d0fb34953" width="80"/></td>
+    <td><img src="https://github.com/user-attachments/assets/43258844-c196-4fb5-aeb4-b0ba3d900445" width="80"/></td>
+    <td><img src="https://github.com/user-attachments/assets/1a497557-5062-4ecc-aa08-6ea92be8d503" width="80"/></td>
+    <td><img src="https://github.com/user-attachments/assets/1f15bd26-d3e4-4e4a-8ced-65f57b82980e" width="80"/></td>
   </tr>  
   <tr>    
-    <td><img src="https://github.com/user-attachments/assets/1053eb3d-4ce9-4060-ad82-06b98c284d4b" width="50"/></td>
-    <td><img src="https://github.com/user-attachments/assets/e00f1bd4-ebec-4896-a5d2-7adc34c5ca69" width="50"/></td>
-    <td><img src="https://github.com/user-attachments/assets/8f7967c2-805c-4da3-9959-47d2df6f346d" width="50"/></td>
-    <td><img src="https://github.com/user-attachments/assets/bbf32354-1da9-44b1-b9d2-9f5993805676" width="50"/></td>
-    <td><img src="https://github.com/user-attachments/assets/ef6f07a2-c6b5-4f17-bf7c-83be5c87b6b0" width="50"/></td>
+    <td><img src="https://github.com/user-attachments/assets/1053eb3d-4ce9-4060-ad82-06b98c284d4b" width="80"/></td>
+    <td><img src="https://github.com/user-attachments/assets/e00f1bd4-ebec-4896-a5d2-7adc34c5ca69" width="80"/></td>
+    <td><img src="https://github.com/user-attachments/assets/8f7967c2-805c-4da3-9959-47d2df6f346d" width="80"/></td>
+    <td><img src="https://github.com/user-attachments/assets/bbf32354-1da9-44b1-b9d2-9f5993805676" width="80"/></td>
+    <td><img src="https://github.com/user-attachments/assets/ef6f07a2-c6b5-4f17-bf7c-83be5c87b6b0" width="80"/></td>
   </tr>  
 </table>
 
