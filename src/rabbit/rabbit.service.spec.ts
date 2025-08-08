@@ -3,7 +3,8 @@ import { AmqpConnection, Nack } from '@golevelup/nestjs-rabbitmq';
 import { RabbitService } from './rabbit.service';
 import { EmailSendService } from 'src/email-send/email-send.service';
 import loggers from 'src/commom/utils/loggers';
-import { CreateRabbitDto, TypeQueueRabbit } from './dto/create-rabbit.dto';
+import { CreateRabbitDto } from './dto/create-rabbit.dto';
+import { TypeQueue } from 'src/commom/enums/queue-enum';
 
 // Mocks das dependências externas
 const mockAmqpConnection = {
@@ -58,7 +59,7 @@ describe('RabbitService', () => {
 
       const createRabbitDto: CreateRabbitDto = {
         message: '{"to": "test@example.com", "subject": "Test", "text": "Hello"}',
-        typeQueueRabbit: TypeQueueRabbit.SEND_EMAIL_FORGET_PASSWORD,
+        typeQueueRabbit: TypeQueue.SEND_EMAIL_FORGET_PASSWORD,
       };
 
       await service.create(createRabbitDto);
