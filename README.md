@@ -1,176 +1,257 @@
-## Description
+# 🚀 API NestJS – Projeto para agendamento de tarefas/serviços etc....
 
-#PADRAO INICIAL DE UMA API NEST
+✨API construída com NestJS e TypeScript para gerenciar horários de serviços de prestadores e tarefas pessoais.
+Oferece autenticação completa, CRUD de usuários, integração com serviços externos (filas, provedores de storage, envio de e-mail, etc.), validação 100% nos DTOs e tipagem 100% no TypeScript para máxima segurança e consistência de dados.
 
-api feita com nest.JS typeScripty para iniciar qualquer projeto a partir dela
+Funcionalidades principais:
 
-* para rodar a api primeiro rode npm install, rode o docker e rode pelo menos o rebbitmq para conectar - docker compose up rabbitmq -d, e de play no docker depois rode debugger ou npm run start:dev
+Cadastro e login (JWT + refresh token).
 
-* mysql, typeorm, user CRUD, envia email, esqueceu senha, atualizar senha, login, token, refresh token,
-validate no dto, storage firebase, storage drop box, storage cloudnary, decorators personalizados role permission,
-docker, filas com pub sub, rabbitmq, redis, logger para retornar erros no console 
+Recuperação e atualização de senha.
 
-* MAPA PASSO A PASSO
+Agendamento de serviços com validação de conflito (impede criar/atualizar quando já há outro serviço no mesmo horário).
 
-* 001 - TYPE ORM
-* 001 - MYSQL POSTGRES
-* 001 - CRIANDO USUARIO E O CRUD
-* 001 - LOGIN
-* 001 - REFRESH TOKEN
-* 001 - ERROS TRY CATH
-* 001 - LOGGER
-* 001 - VALIDATORS NO DTO
-* 001 - INDEX NAS ENTIDADES
-* 001 - SIMPLE JSON NA ENTIDADE
-* 001 - MAPA PARA O INSOMINIA CONFIGURAR
+Relatórios de serviços (executados / pendentes).
 
-* ATEH A PASTA 11 NO MAPA ISSO ********
+Filtros avançados: por dia, semana, mês, ano, usuário, status, etc.
 
-* 002 - add decorator personalizado para User vindo pela req
-* 002 - add decorator para controle de permissao do usuario role
-* 002 - add nova coluna e enum na entidade para permissao
-* 002 - add refatoracao no update user para role ser permitido so por um administrador
+Integração com filas e storage em nuvem para processamento assíncrono e upload de mídias.
 
-* 003 - add dockerfile e docker-compose conmunicando com banco local do pc
-* 003 - add no docker-compose o REDIS para subir antes da aplicacao e podermos usar o redis no futuro
+Validação de dados 100% nos DTOs usando decorators e pipes.
 
-* 004 - ADD FILAS COM REDIS NO DOCKER E BULL PARA MANIPULAR
-* 004 - EM MAPS 004 TEM FILAS RABITMQ, PUB SUB, BULL E REDIS, REDIS PURO ETC 
+Tipagem completa no TypeScript para evitar erros em tempo de desenvolvimento.
 
-* 005 - ADICIONEI ENVIAR EMAIL USANDO NODEMALER PELO GMAIL  HOTMAIL ETC
+---
 
-* 006 - ADICIONEI A FORMA DE FAZER O ESQUECEU A SENHA...ENVIANDO CODIGO NO EMAIL POREM SEM FILA AINDA
-* 006 - ADICIONEI A FORMA DE REALIZAR UPDATE PASSWORD COM O CODIGO RECEBIDO NO EMAIL
-* 006 - ADICIONEI A FORMA DE REALIZAR UPDATE PASSWORD POR UM USUÁRIO LOGADO AMBOS OS 007 NO MESMO METODO COM 2 CHAMADAS 
+## 📌 Tecnologias Principais
 
-* 007 - ADICIONEI O RABBIT MQ REFATOREI O EMAILS DO ESQUECEU A SENHA PARA O RABBIT ENVIAR O EMAIL 
-* 007 - CONFIGURADO RABIT MQ PELO DOCKER ENVIANDO MSG NA FILA E CONSUMINDO AS MSGS FAZENDO O TRABALHO QUE NO CASO É ENVIAR EMAIL
-DIFERENTES NO CONTROLLER
+- **NestJS** + **TypeScript**
+- **Bancos - MySQL** / **PostgreSQL** via **TypeORM**
+- **Docker** e **Docker Compose**
+- **RabbitMQ** (filas, pub/sub)
+- **Redis** (cache e filas)
+- **JWT** (token & refresh token)
+- **Buckets Storage** - Dropbox, Cloudinary
+- **Firebase** - Push notifications
+- **Nodemailer** (envio de emails)
+- **Swagger** (documentação completa)
+- **Date-fns** (manipulação de datas)
+- **Bull** (gerenciamento de filas)
+- **Logger personalizado**
+- **Testes unitários com Jest cobertura completa**
 
-* 008 - FIREBASE BUCKET STORAGE - ADD O BUCKET NO CLASSIFIELD API (nessa nao tem) caso precise.
-* 008 - GCP BUCKET STORAGE - ADD O BUCKET em outra API (nessa nao tem) caso precise.
+---
 
-* 009 - FIREBASE PUSH NOTIFICATION - ADD FORMA DE ENVIAR O PUSH NOTIFICATION PELO FIREBASE
-* 009 - FIREBASE REGISTER-DEVICE - ENTIDADE REGISTER DEVICE PARA SALVAR O TOKEN DO FIREBASE NO BANCO
-* 009 - ENTIDADE FIREBASE-PUSH-NOTIFICATION - PARA SALVAR OS DADOS DO PUSH NOTIFICATION NO BANCO
+🗄️ Serviços Integrados
+MySQL / PostgreSQL com TypeORM
 
-*0010 - DROPBOX - ADD BUCKET COM DROPBOX UPLOAD FILE REMOVE FILE E REMOVE FOLDER
-*0010 - CREATE USER JAH ADICIONA IMAGEM NO DROP BOX
-*0010 - UPDATE USER REMOVE IMAGEM DROP BOX E ADD IMAGEM NOVA
-*0010 - DELETE USER REMOVE A PASTA TODA DO USUARIO
+JWT + Refresh Token
 
-*0011 - CLOUDNARY BUCKET - BUCKET PARA UPLOAD DE MIDIAS 
-*0011 - FEITO O UPLOAD - REMOVE TODA PASTA - REMOVE ARQUIVO
-*0011 - ADD NO CREATE USER - UPDATE USER - DELETE USER - DELETE IMAGE AVATAR USER
-*0011 - BASICAMENTE FIREBASE - DROPBOX - CLOUDNARY - SÃO BUCKETS DE MIDIAS E 
-*0011 - ADD TB METODO PARA PEGAR AS URLS DAS MEDIAS E SUBIR DIRETAMENTE PELO FRONT.
+RabbitMQ (fila de envio de emails e outras tarefas assíncronas)
 
-*0012 - REFATORAÇÃO E TIPAGENS QUE EM DADOS NÃO TIPADOS AINDA
+Redis para cache e filas
 
-*0013 - SIMPLE-JSON - ADICIONANDO SIMPLE JSON PARA O AVATAR DO USUÁRIO
+Armazenamento de mídias:
 
-*0014 - SWAGER - DOCUMENTAÇÃO COMPLETA - url/api
+Firebase
 
-*0015 - DATE FNS - ADICIONADO DATE FNS PARA TRABALHAR COM DATAS
-*0015 - ADICIONADO A ENTIDADE TASK PARA AGENDAMENTO DE TAREFAS
-*0015 - RELAÇÃO ONE TO MANY COM A USER - UM USER PARA MUITAS TASKS
-*0015 - CRIAR TASK -  COM CONTROLE DO HORARIO VERIFICANDO SE O HORARIO ESTÁ LIVRE ETC
-*0015 - UPDATE TASK - APENAS DONO DA TASK OU USUÁRIO TIPO ADMIN
-*0015 - DELETE TASK - APENAS DONO DA TASK OU USUÁRIO TIPO ADMIN
-*0015 - GET TASK BY ID - APENAS TASK DO USUÁRIO LOGADO.....OU DE QUALQUER 1 CASO SEJA ADMIN USER
-*0015 - GET TASKS BY QUERY - APENAS TASK DO USUÁRIO LOGADO.....OU DE QUALQUER 1 CASO SEJA ADMIN USER
---QUERY => {
-    userOwnerId number;    
-    status StatusTaskEnum;  
-    dateEvent string;    
-    title string;
-    description string;
-    page number;
-    take number;
-    orderBy 'ASC' | 'DESC'
---}
-*0015 - GET TASKS BY PERIOD - APENAS TASK DO USUÁRIO LOGADO.....OU DE QUALQUER 1 CASO SEJA ADMIN USER,
---RETORNA TASKS PELO PERIDO DESEJADO - DIARIO.....SEMANAL.....MENSAL.....ANUAL
---QUERY => {
-    userOwnerId number;    
-    status StatusTaskEnum; 
-    period: PeriodTasksEnum;    
-    page number;
-    take number;
-    orderBy 'ASC' | 'DESC'
---}
+Dropbox
+
+Cloudinary
+
+Envio de email (Nodemailer – Gmail, Hotmail etc.)
+
+Swagger para documentação (/api)
+
+Controle de permissões com decorators personalizados (Role, Permission)
+
+--------
+
+📍 Funcionalidades
+🔑 Autenticação & Usuários
+Registro de usuário
+
+Login com JWT
+
+Refresh Token
+
+Atualização de senha:
+
+Por código enviado por email
+
+Por senha antiga (usuário logado)
+
+Recuperação de senha
+
+CRUD de usuário
+
+Upload de avatar para Dropbox ou Cloudinary
+
+Controle de permissões e papéis (roles)
+
+📬 Email
+Envio direto via SMTP (Nodemailer)
+
+Envio assíncrono via RabbitMQ
+
+☁️ Armazenamento de Mídia
+
+Dropbox (upload, remoção de arquivos e pastas)
+
+Cloudinary (upload, remoção e listagem de URLs)
+
+📅 Tarefas (Tasks)
+CRUD de tarefas
+
+Relacionamento 1:N com usuário
+
+Filtros por período (diário, semanal, mensal, anual)
+
+Controle de acesso (somente dono ou admin)
+
+📊 Infraestrutura
+Dockerfile e docker-compose configurados
+
+Redis pronto para cache e filas
+
+Logger personalizado
+
+Validação de DTOs
+
+Index e campos JSON simples nas entidades
+
+Testes unitários com Jest para services, controllers e DTOs
 
 
-*0016 - TESTES COM JEST APLICADOS em todos os services de logica, todos os controllers, index da pasta commom, todos os Dtos
+---------
 
-## Project setup
 
-```bash
-$ npm install
-```
+🗺️ Mapa de Desenvolvimento
+001 – Configuração Base
 
-## Compile and run the project
+TypeORM + MySQL/PostgreSQL
 
-```bash
-# development
-$ npm run start
+CRUD de usuário
 
-# watch mode
-$ npm run start:dev
+Login e Refresh Token
 
-# production mode
-$ npm run start:prod
-```
+Tratamento de erros (try/catch)
 
-## Run tests
+Logger personalizado
 
-```bash
-# unit tests
-$ npm run test
+Validações nos DTOs
 
-# e2e tests
-$ npm run test:e2e
+Index e Simple JSON nas entidades
 
-# test coverage
-$ npm run test:cov
-```
+Configuração inicial no Insomnia
 
-## Deployment
+002 – Permissões
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Decorator para usuário na requisição
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Decorator para controle de permissões (role)
 
-```bash
-$ npm install -g mau
-$ mau deploy
-```
+Enum de permissões na entidade
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Update de usuário com controle de administrador
 
-## Resources
+003 – Docker
 
-Check out a few resources that may come in handy when working with NestJS:
+Dockerfile e docker-compose com banco local
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+Redis no docker-compose
 
-## Support
+004 – Filas
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Filas com Bull + Redis
 
-## Stay in touch
+RabbitMQ (pub/sub, envio e consumo de mensagens)
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+005 – Emails
 
-## License
+Envio via Nodemailer
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+006 – Recuperação de Senha
+
+Fluxo de envio de código por email
+
+Atualização de senha via código ou usuário logado
+
+007 – RabbitMQ para Emails
+
+Refatoração para envio de emails via fila RabbitMQ
+
+008 – Firebase Storage
+
+Integração com Bucket do Firebase
+
+009 – Firebase Push Notification
+
+Registro de dispositivos e envio de notificações
+
+010 – Dropbox
+
+Upload, remoção de arquivos e pastas
+
+Integração no CRUD de usuário
+
+011 – Cloudinary
+
+Upload e remoção de mídias
+
+Integração no CRUD de usuário
+
+Obtenção de URLs para uso no frontend
+
+012 – Refatorações e Tipagens
+
+Melhorias em tipagem e organização
+
+013 – Simple JSON
+
+Uso de Simple JSON para avatar
+
+014 – Swagger
+
+Documentação completa (/api)
+
+015 – Tarefas
+
+CRUD de tasks
+
+Filtros por status, data e período
+
+Controle de acesso por usuário/administrador
+
+016 – Testes
+
+Cobertura total de testes com Jest
+
+
+📖 Documentação da API
+Após iniciar o projeto, acesse:
+
+http://localhost:3000/api
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
