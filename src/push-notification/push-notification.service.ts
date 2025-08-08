@@ -22,14 +22,6 @@ export class PushNotificationService {
       let page = 1;
       let take = 499;
 
-      if (!data.notification.title || data.notification.title === '') {
-        throw new HttpException(`Titulo é obrigatório`, HttpStatus.BAD_REQUEST)
-      }
-
-      if (!data.notification.body || data.notification.body === '') {
-        throw new HttpException(`Body é obrigatório`, HttpStatus.BAD_REQUEST)
-      }
-
       // Verifica se a string contém '.com' e comeca 'https://'
       if (data.notification.imageUrl && (!data.notification.imageUrl.match(/\.com/) || !data.notification.imageUrl.match(/^https:\/\//))) {
         throw new HttpException(`Deve enviar uma url válida https://...`, HttpStatus.BAD_REQUEST)

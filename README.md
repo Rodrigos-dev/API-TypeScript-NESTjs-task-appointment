@@ -101,7 +101,7 @@ DIFERENTES NO CONTROLLER
 --}
 
 
-*0016 - TESTES COM JEST APLICADOS
+*0016 - TESTES COM JEST APLICADOS em todos os services de logica, todos os controllers, index da pasta commom, todos os Dtos
 
 ## Project setup
 

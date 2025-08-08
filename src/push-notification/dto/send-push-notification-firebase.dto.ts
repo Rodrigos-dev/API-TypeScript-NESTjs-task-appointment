@@ -15,7 +15,6 @@ class NotificationDto {
 
     @ApiProperty({ required: false })
     @IsOptional()
-    @IsUrl({ require_protocol: true, protocols: ['https'] }, { message: 'A URL da imagem deve ser válida e começar com https://.' })
     @IsString()
     imageUrl?: string;
 }
